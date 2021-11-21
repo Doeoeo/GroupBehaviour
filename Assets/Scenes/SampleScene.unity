@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
+  m_IndirectSpecularColor: {r: 0.44947422, g: 0.4995485, b: 0.5756866, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -174,7 +174,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 1f8914a3549e30440838c1e612cfd09d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -247,9 +247,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bcfb80841bbed174cac31c7580ddae79, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
-  material: {fileID: 10302, guid: 0000000000000000f000000000000000, type: 0}
-  agentNumber: 1000
+  fishMesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
+  fishMaterial: {fileID: 2100000, guid: 93c4b175ecd668147a2f809f2b1da698, type: 2}
+  fishNumber: 20
+  predatorMesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
+  predatorMaterial: {fileID: 2100000, guid: d74222a0958099d4484246b2db0a25bf, type: 2}
+  predatorNumber: 1
 --- !u!4 &457921350
 Transform:
   m_ObjectHideFlags: 0
@@ -350,13 +353,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 705507993}
-  m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
-  m_LocalPosition: {x: 0, y: 3, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: 0.34914327, y: -0.0024532357, z: 0.0009140562, w: 0.9370657}
+  m_LocalPosition: {x: 0, y: 2, z: -3}
+  m_LocalScale: {x: 50.890057, y: 0.7975876, z: 0.44726354}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+  m_LocalEulerAnglesHint: {x: 40.87, y: -0.3, z: 0}
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0
