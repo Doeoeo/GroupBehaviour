@@ -4,7 +4,7 @@ using UnityEngine;
 using Unity.Entities;
 using Unity.Mathematics;
 
-public class PredatorPropertiesComponent : IComponentData
+public struct PredatorPropertiesComponent : IComponentData
 {
     public float vM;                                              //Max speed
     public float vC;                                              //Crusing speed

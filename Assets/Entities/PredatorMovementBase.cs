@@ -4,9 +4,14 @@ using UnityEngine;
 using Unity.Entities;
 using Unity.Transforms;
 
+/* SystemBase for adjusting fish positions
+ *  TO DO:
+ *      - Might be worth doing parallel. Check!
+ */
+// FishMovementBase must wait for velocities to be computed or we repeat previous move
 [UpdateAfter(typeof(PredatorVelocityBase))]
 public class PredatorMovementBase : SystemBase {
-    
+    protected int b = 0;
     protected override void OnUpdate() {
         float dt = Time.DeltaTime;
         Entities
@@ -17,6 +22,7 @@ public class PredatorMovementBase : SystemBase {
                 translation.Value = predatorProperties.position;
         }).Run();
         
+
     }
 }
 
