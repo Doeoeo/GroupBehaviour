@@ -22,9 +22,10 @@ public class PredatorVelocityBase : SystemBase {
         }
 
         if (controller) {
+            //Query to get all fish components
             m_Group = GetEntityQuery(ComponentType.ReadOnly<FishPropertiesComponent>());
             NativeArray <FishPropertiesComponent> positions = m_Group.ToComponentDataArray<FishPropertiesComponent>(Allocator.TempJob);
-            NativeArray <Entity> fishes = m_Group.ToEntityArray(Allocator.TempJob);
+            //NativeArray <Entity> fishes = m_Group.ToEntityArray(Allocator.TempJob);
 
             //main for each for all predators
             Entities.WithAll<PredatorPropertiesComponent>()
@@ -113,15 +114,19 @@ public class PredatorVelocityBase : SystemBase {
                 }
             }).Run();
 
+            //Query to get predator components
             EntityQuery m_Group_p = GetEntityQuery(ComponentType.ReadOnly<PredatorPropertiesComponent>());
             NativeArray <PredatorPropertiesComponent> predatorPositions = m_Group_p.ToComponentDataArray<PredatorPropertiesComponent>(Allocator.TempJob);
 
+            //go through all the predators to check if any of them has a fish to delete
             for (int i = 0; i < predatorPositions.Length; i++) {
                 if (predatorPositions[i].fishToEat != -1) {
+                    //there is a fish we need to delete so let's find it
                     Entities.WithAll<FishPropertiesComponent>()
                     .WithoutBurst()
                     .WithStructuralChanges()
                     .ForEach((Entity selectedEntity, ref FishPropertiesComponent fish) => {
+                        //this is the fish the predator has eaten, so let's delete it
                         if (fish.id == predatorPositions[i].fishToEat) {
                             EntityManager.DestroyEntity(selectedEntity);
                         }
