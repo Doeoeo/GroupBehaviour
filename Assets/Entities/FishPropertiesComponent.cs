@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Entities;
 using Unity.Mathematics;
+using System;
 
 /* Data for each fish agent
  *  TO DO:
@@ -10,6 +11,8 @@ using Unity.Mathematics;
  *          (foV, direction, mA/can't remember why this is used/, eD, eW)
  */
 public struct FishPropertiesComponent : IComponentData {
+
+    public int id;
     public float vM;                                              //Max speed
     public float vC;                                              //Crusing speed 
     

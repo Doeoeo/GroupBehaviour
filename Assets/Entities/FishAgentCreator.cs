@@ -65,6 +65,7 @@ public class FishAgentCreator : MonoBehaviour{
 
 
             entityManager.SetComponentData(fish, new FishPropertiesComponent {
+                id = i,
                 vM = 4 * bl,
                 vC = 2 * bl,
                 foV = 0,
@@ -76,7 +77,7 @@ public class FishAgentCreator : MonoBehaviour{
                 sW = 5,
                 aW = 0.3f,
                 cW = 1,
-                eW = 0.01f,
+                eW = 5,
                 bW = 0,
                 mA = 0,
                 len = bl,
@@ -106,9 +107,13 @@ public class FishAgentCreator : MonoBehaviour{
 
             entityManager.SetComponentData(predator, new PredatorPropertiesComponent {
                 vM = 6 * bl,
-                vC = 3 * bl, 
+                vC = 3 * bl,
                 mA = 0,
                 len = bl * 6,
+                status = 0,
+                closestFish = 0,
+                restTime = 1000,
+                remainingRest = 1000,
                 direction = new float3(0, 0, 0),
                 position = new float3(pos),
                 speed = new float3(UnityEngine.Random.Range(-3f, 3f), UnityEngine.Random.Range(-3f, 3f), 0),

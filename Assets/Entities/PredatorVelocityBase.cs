@@ -7,7 +7,7 @@ using Unity.Mathematics;
 using Unity.Jobs;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using System.Collections;
+//using System.Runtime.Remoting.Metadata.W3cXsd2001;
 
 public class PredatorVelocityBase : SystemBase {
 
@@ -15,81 +15,122 @@ public class PredatorVelocityBase : SystemBase {
     private EntityQuery m_Group;
     private FishAgentCreator controller;
 
-    int frame;
-    int status;
-    int timeout;
-    int iClosestFish;
-
-    private float restingSpeed;
-
-    protected override void OnCreate() {
-        frame = 0;
-        status = 0; //0 - choosing; 1 - hunting; 2 - resting
-        timeout = 60;
-    }
-
     protected override void OnUpdate() {
+
         if (!controller) {
             controller = FishAgentCreator.Instance;
         }
+
         if (controller) {
             m_Group = GetEntityQuery(ComponentType.ReadOnly<FishPropertiesComponent>());
             NativeArray <FishPropertiesComponent> positions = m_Group.ToComponentDataArray<FishPropertiesComponent>(Allocator.TempJob);
-            if (status == 0) {
+            NativeArray <Entity> fishes = m_Group.ToEntityArray(Allocator.TempJob);
 
-                Debug.Log("Aquiring target... ");
-                Entities.WithAll<PredatorPropertiesComponent>()
-                .WithoutBurst()
-                //.WithReadOnly(positions)
-                //.WithNativeDisableContainerSafetyRestriction(positions)
-                .ForEach((Entity selectedEntity, ref Translation predatorTranslation, ref PredatorPropertiesComponent predator) => {
+            //main for each for all predators
+            Entities.WithAll<PredatorPropertiesComponent>()
+            .WithoutBurst()
+            .WithReadOnly(positions)
+            .WithNativeDisableContainerSafetyRestriction(positions)
+            .ForEach((Entity selectedEntity, ref Translation predatorTranslation, ref PredatorPropertiesComponent predator) => {
 
-                    /*float3 predatorPosition = new float3(predatorTranslation.Value);
+                float3 predatorPosition = new float3(predatorTranslation.Value);
 
-                    iClosestFish = 0;
-                    float dis = math.distance(predatorPosition, positions[0].position);
+                //status = 0 means the predator is finding a new target
+                if (predator.status == 0) {
+                    //reset rest time
+                    predator.remainingRest = predator.restTime;
+                    predator.fishToEat = -1;
 
+                    Debug.Log("Aquiring target... ");
+
+                    //distance between predator and current fish
+                    float currentDistance = math.distance(predatorPosition, positions[0].position);
+
+                    //find closest fish (currently)
                     for (int i = 1; i < positions.Length; i++) {
-
                         float comparedDistance = math.distance(predatorPosition, positions[i].position);
-
-                        if(comparedDistance < dis) {
-                            dis = comparedDistance;
-                            iClosestFish = i;
+                        //closest fish so far, so save it
+                        if(comparedDistance < currentDistance) {
+                            currentDistance = comparedDistance;
+                            //predator.closestFish is id of the fish that is selected
+                            predator.closestFish = positions[i].id;
                         }
+                    }
 
-                    }*/
-                }).Run();
+                    Debug.Log("Targeted fish number " + predator.closestFish + " aquired!");
+                    predator.status = 1;
 
-                Debug.Log("Target aquired!");
-                status = 1;
-            } else if (status == 1) {
+                //status 1 means that hunting the target
+                } else if (predator.status == 1) {
 
-                float3 speed = new float3();
+                    int targetFishArrayIndex = -1;
 
-                Entities.WithAll<PredatorPropertiesComponent>()
-                .ForEach((Entity selectedEntity, ref Translation predatorTranslation, ref PredatorPropertiesComponent predator) => {
-                    NativeArray <FishPropertiesComponent> positions = m_Group.ToComponentDataArray<FishPropertiesComponent>(Allocator.TempJob);
-                    float3 predatorPosition = new float3(predatorTranslation.Value);
-                    float3 speed = positions[iClosestFish].position - predatorPosition;
-                    predator.speed = speed;//.normalized;
-                }).Schedule();
+                    //find the fish with the target id
+                    for(int i = 0; i < positions.Length; i++) {
+                        if (positions[i].id == predator.closestFish) {
+                            targetFishArrayIndex = i;
+                            break;
+                        } 
+                    }
 
-                /*if (math.distance(predatorPosition, positions[iClosestFish].position) < 0.1f) {
-                    Debug.Log("I caught the fish!");
-                    status = 2;
-                }*/
+                    //if the fish was not found we need to select another
+                    if(targetFishArrayIndex == -1) {
+                        Debug.Log("Targeted fish number " + predator.closestFish + " no longer exists, finding new target.");
+                        predator.status = 0;
 
-            } else if (status == 2) {
-                if (timeout == 59) {
-                    Debug.Log("Resting...");
-                } else if (timeout > 0) {
-                    timeout --;
-                } else {
-                    timeout = 60;
-                    status = 0;
+                    //else we have the fish and we eat it if we are close
+                    } else {
+                        float3 speedToFish = positions[targetFishArrayIndex].position - predatorPosition;
+                        //change the vector speed magnitude to max speed
+                        predator.speed = ((Vector3) speedToFish).normalized * predator.vM;
+
+                        //if the fish is less than 1 bl away from the fish, we say the prey ate the fish
+                        if (math.distance(predatorPosition, positions[targetFishArrayIndex].position) < 0.1f) {
+                            Debug.Log("I caught the fish!");
+                            //setup the fish with the id to be eaten
+                            predator.fishToEat = predator.closestFish;
+                            //maybe we need a critical section
+                            predator.status = 2;
+                        }
+                    }
+
+                //is the predator status is 2 then the predator is just drifting in the direction
+                //he was last hunting for the fish, however it now has cruising speed
+                } else if (predator.status == 2) {
+                    predator.fishToEat = predator.closestFish;
+                    //speed should now cruizing speed
+                    predator.speed = ((Vector3) predator.speed).normalized * predator.vC;
+                    if (predator.remainingRest == predator.restTime) {
+                        Debug.Log("Resting..." + predator.remainingRest);
+                        predator.remainingRest--;
+                    //counting down the frames of resting time
+                    } else if (predator.remainingRest > 0) {
+                        predator.remainingRest --;
+                        Debug.Log("Resting..." + predator.remainingRest);
+                    } else {
+                        predator.status = 0;
+                    }
+                }
+            }).Run();
+
+            EntityQuery m_Group_p = GetEntityQuery(ComponentType.ReadOnly<PredatorPropertiesComponent>());
+            NativeArray <PredatorPropertiesComponent> predatorPositions = m_Group_p.ToComponentDataArray<PredatorPropertiesComponent>(Allocator.TempJob);
+
+            for (int i = 0; i < predatorPositions.Length; i++) {
+                if (predatorPositions[i].fishToEat != -1) {
+                    Entities.WithAll<FishPropertiesComponent>()
+                    .WithoutBurst()
+                    .WithStructuralChanges()
+                    .ForEach((Entity selectedEntity, ref FishPropertiesComponent fish) => {
+                        if (fish.id == predatorPositions[i].fishToEat) {
+                            EntityManager.DestroyEntity(selectedEntity);
+                        }
+                    }).Run();
                 }
             }
+            
+            predatorPositions.Dispose();
+            positions.Dispose();
         }
     }
     
