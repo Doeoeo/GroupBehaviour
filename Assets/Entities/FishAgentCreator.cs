@@ -28,7 +28,6 @@ public class FishAgentCreator : MonoBehaviour{
     // Start is called before the first frame update
     private void Start() {
         if (!isActive) return;
-        Instance = this;
         EntityManager entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 
         EntityArchetype fishArchetype = entityManager.CreateArchetype(
