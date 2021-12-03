@@ -17,8 +17,10 @@ public struct PredatorPropertiesComponent : IComponentData
     public float3 speed;                                          //Speed
 
     public int closestFish;                                       //Index of the fish that the predator chooses
-    public int status;        
-    public int restTime;                                          //0 - choosing; 1 - hunting; 2 - resting
-    public int remainingRest;                                     //Remaining frames for idling after catching a fish
+    public int status;                                            //-2 finding centre; -1 charging to centre; 0 - choosing least peripheral prey; 1 - hunting; 2 - resting
+    public int restTime;                                          //Frames dedicated to eating fish
+    public int remainingRest;                                     //Remaining frames for eating after catching a fish
     public int fishToEat;                                         //Fish soft deletion
+    public int centerFish;                                        //Central fish for hunting
+    public int mostIsolated;
 }

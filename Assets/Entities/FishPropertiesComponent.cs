@@ -36,4 +36,7 @@ public struct FishPropertiesComponent : IComponentData {
     public float3 direction;                                      //Direction
     public float3 position;                                       //Position
     public float3 speed;                                          //Speed
+
+    public float peripherality;                                   //magnitude of the peripherality vector
+    public float3 peripheralityVector;                            //Peripherality vector
 }

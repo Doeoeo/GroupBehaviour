@@ -55,6 +55,9 @@ public class FishDriveBase : SystemBase {
                     float3 seperationDrive = new float3(0, 0, 0), alignmentDrive = new float3(0, 0, 0), cohesionDrive = new float3(0, 0, 0), borderDrive = new float3(0, 0, 0), escapeDrive = new float3(0, 0, 0);
                     int seperationCount = 0, alignmentCount = 0, cohesionCount = 0, escapeCount = 0;
 
+                    float3 peripheralityVector = new float3(0, 0, 0);
+                    int peripheralityCount = 0;
+
                     // Loop over entities
                     for (int i = 0; i < positions.Length; i++) {
                         // Compute distance and angle between fish agents
@@ -69,7 +72,6 @@ public class FishDriveBase : SystemBase {
                                 seperationCount++;
                                 Vector3 dJ = positions[i].position - fish.position;
 
-
                                 seperationDrive += -1 * dJ * (1 - (float3)dJ.magnitude / seperationRadius);
                             }
 
@@ -77,7 +79,6 @@ public class FishDriveBase : SystemBase {
                             else if (comparedDistance < alignmentRadius) {
                                 alignmentCount++;
                                 alignmentDrive += positions[i].speed;
-
                             }
 
                             // Check if agent is too far
@@ -86,6 +87,9 @@ public class FishDriveBase : SystemBase {
                                 cohesionDrive += positions[i].position - fish.position;
                             }
 
+                            // Calculate peripherality
+                            peripheralityVector += positions[i].position - fish.position;
+                            peripheralityCount ++;
                         }
                     }
 
@@ -106,12 +110,15 @@ public class FishDriveBase : SystemBase {
                     if (alignmentCount != 0) alignmentDrive /= alignmentCount;
                     if (cohesionCount != 0) cohesionDrive /= cohesionCount;
                     if (escapeCount != 0) escapeDrive /= escapeCount;
+                    if (((Vector3)peripheralityVector).magnitude!= 0) peripheralityVector /= peripheralityCount;
 
                     // Set computed drives
                     fish.sD = seperationDrive;
                     fish.aD = alignmentDrive;
                     fish.cD = cohesionDrive;
                     fish.eD = escapeDrive;
+                    fish.peripherality = ((Vector3)peripheralityVector).magnitude;
+                    fish.peripheralityVector = peripheralityVector;
 
             }).ScheduleParallel();
 

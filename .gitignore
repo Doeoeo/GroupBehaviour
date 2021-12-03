@@ -43,3 +43,6 @@ Thumbs.db
 Library/
 Logs/
 .vscode/
+.vscode
+*.sln
+*.csproj

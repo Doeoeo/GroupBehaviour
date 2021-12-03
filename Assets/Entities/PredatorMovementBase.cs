@@ -20,6 +20,7 @@ public class PredatorMovementBase : SystemBase {
 
                 predatorProperties.position += predatorProperties.speed * dt;
                 translation.Value = predatorProperties.position;
+                Debug.DrawLine(predatorProperties.position, predatorProperties.position + predatorProperties.speed, Color.red);
         }).Run();
         
 
