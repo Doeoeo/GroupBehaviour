@@ -37,7 +37,8 @@ public class FishAgentCreator : MonoBehaviour{
             typeof(RenderMesh),
             typeof(LocalToWorld),
             typeof(RenderBounds),
-            typeof(Scale)
+            typeof(Scale),
+            typeof(Rotation)
         );
 
         EntityArchetype predatorArchetype = entityManager.CreateArchetype(
@@ -46,7 +47,8 @@ public class FishAgentCreator : MonoBehaviour{
             typeof(RenderMesh),
             typeof(LocalToWorld),
             typeof(RenderBounds),
-            typeof(Scale)
+            typeof(Scale),
+            typeof(Rotation)
         );
 
         NativeArray<Entity> fishArray = new NativeArray<Entity>(fishNumber, Allocator.Temp);

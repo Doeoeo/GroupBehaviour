@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Entities;
 using Unity.Transforms;
+using Unity.Mathematics;
 
 /* SystemBase for adjusting fish positions
  *  TO DO:
@@ -16,11 +17,12 @@ public class PredatorMovementBase : SystemBase {
         float dt = Time.DeltaTime;
         Entities
             .WithReadOnly(dt)
-            .ForEach((ref Translation translation, ref PredatorPropertiesComponent predatorProperties) => {
+            .ForEach((ref Translation translation, ref PredatorPropertiesComponent predatorProperties, ref Rotation rotation) => {
 
                 predatorProperties.position += predatorProperties.speed * dt;
                 translation.Value = predatorProperties.position;
                 Debug.DrawLine(predatorProperties.position, predatorProperties.position + predatorProperties.speed, Color.red);
+                rotation.Value = quaternion.LookRotation(predatorProperties.speed,Vector3.up);
         }).Run();
         
 
