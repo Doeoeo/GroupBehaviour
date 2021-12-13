@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Entities;
 using Unity.Mathematics;
+using System;
 
 /* Data for each fish agent
  *  TO DO:
@@ -10,6 +11,8 @@ using Unity.Mathematics;
  *          (foV, direction, mA/can't remember why this is used/, eD, eW)
  */
 public struct FishPropertiesComponent : IComponentData {
+
+    public int id;
     public float vM;                                              //Max speed
     public float vC;                                              //Crusing speed 
     
@@ -33,4 +36,7 @@ public struct FishPropertiesComponent : IComponentData {
     public float3 direction;                                      //Direction
     public float3 position;                                       //Position
     public float3 speed;                                          //Speed
+
+    public float peripherality;                                   //magnitude of the peripherality vector
+    public float3 peripheralityVector;                            //Peripherality vector
 }

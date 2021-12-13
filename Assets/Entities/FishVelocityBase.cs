@@ -47,7 +47,7 @@ public class FishVelocityBase : SystemBase {
 
                 // Adjust acceleration and add it to agent's velocity 
                 float3 a = fishProperties.sW * fishProperties.sD + fishProperties.aW * fishProperties.aD + fishProperties.cW * fishProperties.cD
-                         + fishProperties.bW * fishProperties.bD;// + fishProperties.eW * fishProperties.eD;
+                         + fishProperties.bW * fishProperties.bD + fishProperties.eW * fishProperties.eD;
                 fishProperties.speed += a * dt;
 
                 // Cut the speed to agent's maximum speed

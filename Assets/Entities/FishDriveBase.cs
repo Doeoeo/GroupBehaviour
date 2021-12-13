@@ -7,6 +7,8 @@ using Unity.Mathematics;
 using Unity.Jobs;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using System.Collections.Specialized;
+//using System.Runtime.Remoting.Metadata.W3cXsd2001;
 
 
 /* SystemBase for adjusting computing drives
@@ -22,31 +24,40 @@ using Unity.Collections.LowLevel.Unsafe;
 public class FishDriveBase : SystemBase {
 
     private EntityQuery m_Group;
+    private EntityQuery m_Group_p;
     private FishAgentCreator controller;
 
     protected override void OnUpdate() {
         // Copied for initialisation order safety not sure if required
-     
+
         // Querry over all entities to use in our forEach
         m_Group = GetEntityQuery(ComponentType.ReadOnly<FishPropertiesComponent>());
         NativeArray <FishPropertiesComponent> positions = m_Group.ToComponentDataArray<FishPropertiesComponent>(Allocator.TempJob);
+
+        m_Group_p = GetEntityQuery(ComponentType.ReadOnly<PredatorPropertiesComponent>());
+        NativeArray <PredatorPropertiesComponent> predatorPositions = m_Group_p.ToComponentDataArray<PredatorPropertiesComponent>(Allocator.TempJob);
 
         // Main forEach passing positions as ReadOnly didn't work.
         // Had to remove safety restrictions -> BE CAREFUL
         Entities.WithAll<FishPropertiesComponent>()
             .WithReadOnly(positions)
+            .WithReadOnly(predatorPositions)
             .WithNativeDisableContainerSafetyRestriction(positions)
+            .WithNativeDisableContainerSafetyRestriction(predatorPositions)
             .ForEach((Entity selectedEntity, ref Translation fishTranslation, ref FishPropertiesComponent fish) => {
 
                 // Might not be necassary
                 float3 fishPosition = new float3(fishTranslation.Value);
 
                 // Radiai for each drive
-                float seperationRadius = 5 * fish.len, alignmentRadius = 25 * fish.len, cohesionRadius = 100 * fish.len;
+                float seperationRadius = 5 * fish.len, alignmentRadius = 25 * fish.len, cohesionRadius = 100 * fish.len, escapeRadius = 20 * fish.len;
 
                 // Data for drive calculations
-                float3 seperationDrive = new float3(0, 0, 0), alignmentDrive = new float3(0, 0, 0), cohesionDrive = new float3(0, 0, 0), borderDrive = new float3(0, 0, 0);
-                int seperationCount = 0, alignmentCount = 0, cohesionCount = 0;
+                float3 seperationDrive = new float3(0, 0, 0), alignmentDrive = new float3(0, 0, 0), cohesionDrive = new float3(0, 0, 0), borderDrive = new float3(0, 0, 0), escapeDrive = new float3(0, 0, 0);
+                int seperationCount = 0, alignmentCount = 0, cohesionCount = 0, escapeCount = 0;
+
+                float3 peripheralityVector = new float3(0, 0, 0);
+                int peripheralityCount = 0;
 
                 // Loop over entities
                 for (int i = 0; i < positions.Length; i++) {
@@ -62,7 +73,6 @@ public class FishDriveBase : SystemBase {
                             seperationCount++;
                             Vector3 dJ = positions[i].position - fish.position;
 
-
                             seperationDrive += -1 * dJ * (1 - (float3)dJ.magnitude / seperationRadius);
                         }
 
@@ -70,7 +80,6 @@ public class FishDriveBase : SystemBase {
                         else if (comparedDistance < alignmentRadius) {
                             alignmentCount++;
                             alignmentDrive += positions[i].speed;
-
                         }
 
                         // Check if agent is too far
@@ -79,26 +88,47 @@ public class FishDriveBase : SystemBase {
                             cohesionDrive += positions[i].position - fish.position;
                         }
 
+                        // Calculate peripherality
+                        peripheralityVector += positions[i].position - fish.position;
+                        peripheralityCount ++;
                     }
+                }
 
+                    //chech distance to all predators
+                for (int i = 0; i < predatorPositions.Length; i++) {
+                    float comparedDistance = math.distance(fishPosition, predatorPositions[i].position);
+                        //find predators that are closer than 
+                        if (comparedDistance < escapeRadius) {
+                            escapeCount++;
+                            Vector3 vecToPredator = predatorPositions[i].position - fish.position;
+                            escapeDrive += -1 * vecToPredator  * (1 - (float3)vecToPredator.magnitude / escapeRadius);
+                        }
                 }
 
                 // Weight computed drives. Mind division by 0
                 if (seperationCount != 0) seperationDrive /= seperationCount;
                 if (alignmentCount != 0) alignmentDrive /= alignmentCount;
                 if (cohesionCount != 0) cohesionDrive /= cohesionCount;
+                if (escapeCount != 0) escapeDrive /= escapeCount;
+                if (((Vector3)peripheralityVector).magnitude!= 0) peripheralityVector /= peripheralityCount;
 
                 // Set computed drives
                 fish.sD = seperationDrive;
                 fish.aD = alignmentDrive;
                 fish.cD = cohesionDrive;
+                fish.eD = escapeDrive;
+                fish.peripherality = ((Vector3)peripheralityVector).magnitude;
+                fish.peripheralityVector = peripheralityVector;
 
         }).ScheduleParallel();
-
         // Cleanup
         positions.Dispose();
-        
+        predatorPositions.Dispose();
     }
+        
+    
+
+    
 
 }
 

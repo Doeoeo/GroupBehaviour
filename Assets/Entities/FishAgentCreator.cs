@@ -20,9 +20,14 @@ using Unity.Mathematics;
 
 public class FishAgentCreator : MonoBehaviour{
 
-    [SerializeField] private Mesh mesh;
-    [SerializeField] private Material material;
-    [SerializeField] private int agentNumber;
+    [SerializeField] private Mesh fishMesh;
+    [SerializeField] private Material fishMaterial;
+    [SerializeField] private int fishNumber;
+
+    [SerializeField] private Mesh predatorMesh;
+    [SerializeField] private Material predatorMaterial;
+    [SerializeField] private int predatorNumber;
+
     [SerializeField] public bool isActive;
 
     // Start is called before the first frame update
@@ -36,13 +41,28 @@ public class FishAgentCreator : MonoBehaviour{
             typeof(RenderMesh),
             typeof(LocalToWorld),
             typeof(RenderBounds),
-            typeof(Scale)
+            typeof(Scale),
+            typeof(Rotation)
         );
 
-        NativeArray<Entity> fishArray = new NativeArray<Entity>(agentNumber, Allocator.Temp);
+        EntityArchetype predatorArchetype = entityManager.CreateArchetype(
+            typeof(PredatorPropertiesComponent),
+            typeof(Translation),
+            typeof(RenderMesh),
+            typeof(LocalToWorld),
+            typeof(RenderBounds),
+            typeof(Scale),
+            typeof(Rotation)
+        );
+
+        NativeArray<Entity> fishArray = new NativeArray<Entity>(fishNumber, Allocator.Temp);
+        NativeArray<Entity> predatorArray = new NativeArray<Entity>(predatorNumber, Allocator.Temp);
 
         entityManager.CreateEntity(fishArchetype, fishArray);
+        entityManager.CreateEntity(predatorArchetype, predatorArray);
+
         float bl = 0.1f;
+
         for(int i = 0; i < fishArray.Length; i++) {
             Entity fish = fishArray[i];
 
@@ -51,6 +71,7 @@ public class FishAgentCreator : MonoBehaviour{
 
 
             entityManager.SetComponentData(fish, new FishPropertiesComponent {
+                id = i,
                 vM = 4 * bl,
                 vC = 2 * bl,
                 foV = 0,
@@ -62,7 +83,7 @@ public class FishAgentCreator : MonoBehaviour{
                 sW = 5,
                 aW = 0.3f,
                 cW = 1,
-                eW = 0.01f,
+                eW = 5,
                 bW = 0,
                 mA = 0,
                 len = bl,
@@ -76,8 +97,8 @@ public class FishAgentCreator : MonoBehaviour{
             });
 
             entityManager.SetSharedComponentData(fish, new RenderMesh {
-                mesh = mesh,
-                material = material
+                mesh = fishMesh,
+                material = fishMaterial
             });
 
             entityManager.SetComponentData(fish, new Scale {
@@ -85,7 +106,44 @@ public class FishAgentCreator : MonoBehaviour{
             });
         }
 
+        for(int i = 0; i < predatorArray.Length; i++) {
+            Entity predator = predatorArray[i];
+
+            Vector3 pos = new float3(UnityEngine.Random.Range(-3f, 3f), UnityEngine.Random.Range(-3f, 3f), 0);
+
+            entityManager.SetComponentData(predator, new PredatorPropertiesComponent {
+                vM = 6 * bl,
+                vC = 3 * bl,
+                mA = 0,
+                len = bl * 6,
+                status = -2,
+                closestFish = -1,
+                fishToEat = -1,
+                centerFish = -1,
+                mostIsolated = -1,
+                restTime = 400,
+                remainingRest = 400,
+                direction = new float3(0, 0, 0),
+                position = new float3(pos),
+                speed = new float3(UnityEngine.Random.Range(-3f, 3f), UnityEngine.Random.Range(-3f, 3f), 0),
+            });
+
+            entityManager.SetComponentData(predator, new Translation {
+                Value = new float3(pos)
+            });
+
+            entityManager.SetSharedComponentData(predator, new RenderMesh {
+                mesh = predatorMesh,
+                material = predatorMaterial
+            });
+
+            entityManager.SetComponentData(predator, new Scale {
+                Value = bl
+            });
+        }
+
         fishArray.Dispose();
+        predatorArray.Dispose();
     }
 
 
