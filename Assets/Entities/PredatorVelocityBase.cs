@@ -10,7 +10,7 @@ using Unity.Collections.LowLevel.Unsafe;
 using System;
 using System.Threading;
 //using System.Runtime.Remoting.Metadata.W3cXsd2001;
-
+[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 public class PredatorVelocityBase : SystemBase {
 
 
