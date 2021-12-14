@@ -33,7 +33,6 @@ public class FishDriveBase : SystemBase {
         // Querry over all entities to use in our forEach
         m_Group = GetEntityQuery(ComponentType.ReadOnly<FishPropertiesComponent>());
         NativeArray <FishPropertiesComponent> positions = m_Group.ToComponentDataArray<FishPropertiesComponent>(Allocator.TempJob);
-
         m_Group_p = GetEntityQuery(ComponentType.ReadOnly<PredatorPropertiesComponent>());
         NativeArray <PredatorPropertiesComponent> predatorPositions = m_Group_p.ToComponentDataArray<PredatorPropertiesComponent>(Allocator.TempJob);
 

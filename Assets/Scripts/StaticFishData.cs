@@ -15,7 +15,7 @@ using Unity.Rendering;
  */      
 public static class StaticFishData {
 
-    private static int floatIndex = 0, float3Index = 0;
+    private static int floatIndex = 0, float3Index = 0, fishIndex = -1;
     private static float bl = 0.1f;
 
     private static EntityArchetype entityArchetype = World.DefaultGameObjectInjectionWorld.EntityManager.CreateArchetype(
@@ -24,12 +24,13 @@ public static class StaticFishData {
             typeof(RenderMesh),
             typeof(LocalToWorld),
             typeof(RenderBounds),
-            typeof(Scale)
+            typeof(Scale),
+            typeof(Rotation)
         );
 
     private static float[] floatData = { 
-        4f * bl,                                                                                         // Max speed
-        2f * bl,                                                                                         // Crusing speed 
+        4f * bl,                                                                                    // Max speed
+        2f * bl,                                                                                    // Crusing speed 
         330f,                                                                                       // Field of view 
         5,                                                                                          // Separation weight
         0.3f,                                                                                       // Alignment weight     
@@ -55,10 +56,12 @@ public static class StaticFishData {
 
     public static float3 getNoIncFloat3() {return float3Data[float3Index - 1];}
 
+    public static int getIndex() { return fishIndex; }
+
     public static float getBl() {return bl;}
 
     public static float3 getRandom() {return float3Data[float3Index++] = new float3(UnityEngine.Random.Range(-3f, 3f), UnityEngine.Random.Range(-3f, 3f), 0);}
     public static EntityArchetype getArchetype() {return entityArchetype;}
 
-    public static void reset() {floatIndex = 0; float3Index = 0;}
+    public static void reset() {floatIndex = 0; float3Index = 0; fishIndex++; }
 }

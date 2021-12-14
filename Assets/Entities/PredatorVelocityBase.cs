@@ -19,8 +19,6 @@ public class PredatorVelocityBase : SystemBase {
 
     protected override void OnUpdate() {
 
-        float lockOnDistance = 1.5f;
-
         //Query to get all fish components
         m_Group = GetEntityQuery(ComponentType.ReadOnly<FishPropertiesComponent>());
         NativeArray <FishPropertiesComponent> positions = m_Group.ToComponentDataArray<FishPropertiesComponent>(Allocator.TempJob);
@@ -37,7 +35,6 @@ public class PredatorVelocityBase : SystemBase {
             //status -2 means the predator needs to find group center
             float leastPeripheral = positions[0].peripherality;
             if (predator.status == -2) {
-                Debug.Log("Calculating flock center ... ");
                 //reset the group center
                 predator.centerFish = positions[0].id;
                 for (int i = 1; i < positions.Length; i++) {
@@ -48,8 +45,6 @@ public class PredatorVelocityBase : SystemBase {
                         predator.centerFish = positions[i].id;
                     }
                 }
-                
-                Debug.Log("Hunting central fish.");
                 predator.status = -1;
             //status -1 means the predator needs to move to the center of the group
             //this stops when the predator is less than lock on distance away from the centre and goes to status 0
@@ -66,7 +61,7 @@ public class PredatorVelocityBase : SystemBase {
 
                 //if the fish was not found we need to select another
                 if(targetFishArrayIndex == -1) {
-                    Debug.Log("Targeted fish number " + predator.closestFish + " no longer exists, finding new target.");
+                    
                     predator.status = -2;
                 //else we have the fish and swim towards it
                 } else {
@@ -75,7 +70,7 @@ public class PredatorVelocityBase : SystemBase {
                     predator.speed = ((Vector3) speedToFish).normalized * predator.vM;
 
                     //if the fish is less than lock on distance away from the fish, we go to find the most isolated fish
-                    if (math.distance(predatorPosition, positions[targetFishArrayIndex].position) < lockOnDistance) {
+                    if (math.distance(predatorPosition, positions[targetFishArrayIndex].position) < predator.lockOnDistance) {
                         //we stop hunting the center fish and move to the status 0
                         predator.status = 0;
                     }
@@ -83,8 +78,7 @@ public class PredatorVelocityBase : SystemBase {
 
             //status = 0 means the predator is finding a new target
             } else if (predator.status == 0) {
-                Debug.Log("Aquiring most isolatedtarget ... ");
-
+                
                 float biggestPeripherality = 0;
                 int j = -1;
                 for(int i = 0; i < positions.Length; i++) {
@@ -97,7 +91,6 @@ public class PredatorVelocityBase : SystemBase {
                     } 
                 }
 
-                Debug.Log("Targeting fish number " + predator.mostIsolated + " ... angle change: " + Vector3.Angle(predator.speed, positions[j].peripheralityVector));
                 predator.status = 1;
 
             //status 1 means that hunting the target
@@ -115,7 +108,6 @@ public class PredatorVelocityBase : SystemBase {
 
                 //if the fish was not found we need to select another
                 if(targetFishArrayIndex == -1) {
-                    Debug.Log("Targeted fish number " + predator.mostIsolated + " no longer exists, finding new center.");
                     predator.status = -2;
 
                 //else we have the fish and we eat it if we are close
@@ -143,7 +135,6 @@ public class PredatorVelocityBase : SystemBase {
                 //speed should now cruizing speed
                 predator.speed = ((Vector3) predator.speed).normalized * predator.vC;
                 if (predator.remainingRest == predator.restTime) {
-                    Debug.Log("Resting..." + predator.remainingRest);
                     predator.remainingRest--;
                 //counting down the frames of resting time
                 } else if (predator.remainingRest > 0) {

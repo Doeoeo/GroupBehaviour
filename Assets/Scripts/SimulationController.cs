@@ -19,8 +19,12 @@ using System;
 
 public class SimulationController : MonoBehaviour {
 
-    [SerializeField] private Mesh mesh;
-    [SerializeField] private Material material;
+    [SerializeField] private Mesh fishMesh;
+    [SerializeField] private Material fishMaterial;
+
+    [SerializeField] private Mesh predatorMesh;
+    [SerializeField] private Material predatorMaterial;
+
     [SerializeField] private int agentNumberParam;
     [SerializeField] public bool isActive;
 
@@ -28,15 +32,23 @@ public class SimulationController : MonoBehaviour {
     public static float timestep = 0.005f;
     private static int simulationNo;
     private int currentSimulationFrame;
+
+    public static float bodyLength = 0.1f;
+
     private EntityManager entityManager;
     FixedStepSimulationSystemGroup a;
 
+    private GeneticAlgorithm evolution;
 
     void Start() {
         Time.fixedDeltaTime = timestep;
         currentSimulationFrame = 0;
         entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-        generateEntity(StaticFishData.getArchetype(), agentNumberParam, constructFishComponent);
+        generateEntity(StaticFishData.getArchetype(), agentNumberParam, constructFishComponent, fishMaterial, fishMesh);
+        generateEntity(StaticPredatorData.getArchetype(), 1, constructPredatorComponent, predatorMaterial, predatorMesh);
+
+        // TODO GEN ALG
+        // evolution = new GeneticAlgorithm( ... );
     }
 
     void FixedUpdate() {
@@ -49,9 +61,18 @@ public class SimulationController : MonoBehaviour {
 
     // Finalize a generation
     private void wrapUp() {
-        //evaluate();
+        // if (evolution.endOfPop()) evolution.evolve();
+        // StaticPredatorData.setEvolve(evolution.nextGene());
         cleanUp();
-        generateEntity(StaticFishData.getArchetype(), agentNumberParam, constructFishComponent);
+        Debug.Log("Cleared Entities");
+        // Create fish
+        generateEntity(StaticFishData.getArchetype(), agentNumberParam, constructFishComponent, fishMaterial, fishMesh);
+        Debug.Log("Made Fish");
+
+        // Create predator
+        generateEntity(StaticPredatorData.getArchetype(), 1, constructPredatorComponent, predatorMaterial, predatorMesh);
+        Debug.Log("Made Predator");
+
         currentSimulationFrame = 0;
     }
 
@@ -62,16 +83,18 @@ public class SimulationController : MonoBehaviour {
     }
 
     // Create new entities
-    private void generateEntity(EntityArchetype entityArchetype, int agentNumber, Func<IComponentData> f) {
+    private void generateEntity(EntityArchetype entityArchetype, int agentNumber, Func<IComponentData> f, Material material, Mesh mesh) {
         NativeArray<Entity> entityArray = new NativeArray<Entity>(agentNumber, Allocator.Temp);
         entityManager.CreateEntity(entityArchetype, entityArray);
 
-
         float bl = 0.1f;
         for (int i = 0; i < entityArray.Length; i++) {
-            Entity entity = entityArray[i];
 
-            entityManager.SetComponentData(entity, (FishPropertiesComponent)f());
+            Entity entity = entityArray[i];
+            var t = f();
+
+            if (t is FishPropertiesComponent) entityManager.SetComponentData(entity, (FishPropertiesComponent)t);
+            else if (t is PredatorPropertiesComponent) entityManager.SetComponentData(entity, (PredatorPropertiesComponent)t);
 
             entityManager.SetComponentData(entity, new Translation {Value = new float3(StaticFishData.getNoIncFloat3())});
 
@@ -91,6 +114,7 @@ public class SimulationController : MonoBehaviour {
     private IComponentData constructFishComponent() {
         StaticFishData.reset();
         return new FishPropertiesComponent {
+            id = StaticFishData.getIndex(),
             vM = StaticFishData.getNextFloat(),
             vC = StaticFishData.getNextFloat(),
             foV = StaticFishData.getNextFloat(),
@@ -112,6 +136,30 @@ public class SimulationController : MonoBehaviour {
         };
     }
 
+    // Predifined component for Predator
+    private IComponentData constructPredatorComponent() {
+        StaticPredatorData.reset();
+        return new PredatorPropertiesComponent {
+            vM = StaticPredatorData.getNextFloat(),
+            vC = StaticPredatorData.getNextFloat(),
+            mA = StaticPredatorData.getNextFloat(),
+            len = StaticPredatorData.getBl(),
+
+            direction = StaticPredatorData.getNextFloat3(),
+            position = StaticPredatorData.getRandom(),
+            speed = StaticPredatorData.getRandom(),
+
+            closestFish = StaticPredatorData.getNextInt(),
+            status = StaticPredatorData.getNextInt(),
+            restTime = StaticPredatorData.getNextInt(),
+            remainingRest = StaticPredatorData.getNextInt(),
+            fishToEat = StaticPredatorData.getNextInt(),
+            centerFish = StaticPredatorData.getNextInt(),
+            mostIsolated = StaticPredatorData.getNextInt(),
+
+            lockOnDistance = StaticPredatorData.getNextEvolve(),
+        };
+    }
 
 
 }

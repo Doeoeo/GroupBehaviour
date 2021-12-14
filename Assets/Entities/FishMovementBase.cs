@@ -20,7 +20,6 @@ public class FishMovementBase : SystemBase {
 
     protected override void OnUpdate() {
         float dt = 0.2f;
-        Debug.Log("doing " + dt);
         Entities
             .WithReadOnly(dt)
             .ForEach((ref Translation translation, ref FishPropertiesComponent fishProperties, ref Rotation rotation) => {

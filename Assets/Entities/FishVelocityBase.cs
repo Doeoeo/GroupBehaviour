@@ -26,7 +26,6 @@ public class FishVelocityBase : SystemBase {
     protected int b = 0;
     protected override void OnUpdate() {
         float dt = 0.2f;
-
         Entities
             .WithoutBurst()
             .WithAll<FishPropertiesComponent>()
