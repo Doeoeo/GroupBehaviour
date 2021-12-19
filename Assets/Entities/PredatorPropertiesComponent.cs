@@ -23,6 +23,7 @@ public struct PredatorPropertiesComponent : IComponentData
     public int fishToEat;                                         //Fish soft deletion
     public int centerFish;                                        //Central fish for hunting
     public int mostIsolated;
+    public float numOfFishCaught;
 
     public float lockOnDistance;                                  //Value to evolve
 }

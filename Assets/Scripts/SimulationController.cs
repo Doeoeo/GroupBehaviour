@@ -2,11 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Entities;
-using Unity.Mathematics;
-using Unity.Collections;
 using Unity.Transforms;
+using Unity.Mathematics;
+using Unity.Jobs;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Rendering;
 using System;
+using System.Threading;
+//using System.Runtime.Remo
 
 /* A Monobehaviour that spawns iterations of entities for each evolution cycle
  * The class sets a custom FixedUpdate rate to speed up the behaviour
@@ -28,7 +32,7 @@ public class SimulationController : MonoBehaviour {
     [SerializeField] private int agentNumberParam;
     [SerializeField] public bool isActive;
 
-    public static int simulationFrames = 500;
+    public static int simulationFrames = 700;
     public static float timestep = 0.005f;
     private static int simulationNo;
     private int currentSimulationFrame;
@@ -38,17 +42,36 @@ public class SimulationController : MonoBehaviour {
     private EntityManager entityManager;
     FixedStepSimulationSystemGroup a;
 
-    private GeneticAlgorithm evolution;
+    public static Chromosome currentChromosome;
+    public static GeneticAlgorithm geneticAlgorithm;
+    public static Chromosome bestChromosome;
+
+    NativeArray<Entity> fishEntityArray;
+    NativeArray<Entity> predatorEntityArray;
 
     void Start() {
         Time.fixedDeltaTime = timestep;
         currentSimulationFrame = 0;
         entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-        generateEntity(StaticFishData.getArchetype(), agentNumberParam, constructFishComponent, fishMaterial, fishMesh);
-        generateEntity(StaticPredatorData.getArchetype(), 1, constructPredatorComponent, predatorMaterial, predatorMesh);
 
-        // TODO GEN ALG
-        // evolution = new GeneticAlgorithm( ... );
+        fishEntityArray = generateEntity(StaticFishData.getArchetype(), agentNumberParam, constructFishComponent, fishMaterial, fishMesh);
+        disposeOfEntityArray(fishEntityArray);
+        predatorEntityArray = generateEntity(StaticPredatorData.getArchetype(), 1, constructPredatorComponent, predatorMaterial, predatorMesh);
+
+        // for (int i = 0; i < predatorEntityArray.Length; i++) {
+        //     PredatorPropertiesComponent predator = entityManager.GetComponentData<PredatorPropertiesComponent>(predatorEntityArray[i]);
+        //     Debug.Log("num of fish caught of this predator: " + predator.numOfFishCaught);
+        // }
+
+        int populationSize = 10;
+        float mutationRate = 0.01f;
+        int genesLength = 1;
+        int maxGenerations = 10;
+        float thresholdScore = 4.0f;
+
+        geneticAlgorithm = new GeneticAlgorithm(populationSize, mutationRate, genesLength, maxGenerations, thresholdScore);
+        currentChromosome = geneticAlgorithm.GetNextChromosome();
+
     }
 
     void FixedUpdate() {
@@ -59,21 +82,93 @@ public class SimulationController : MonoBehaviour {
         currentSimulationFrame++;
     }
 
-    // Finalize a generation
+    // Finalize a simulation
     private void wrapUp() {
-        // if (evolution.endOfPop()) evolution.evolve();
-        // StaticPredatorData.setEvolve(evolution.nextGene());
-        cleanUp();
-        Debug.Log("Cleared Entities");
-        // Create fish
-        generateEntity(StaticFishData.getArchetype(), agentNumberParam, constructFishComponent, fishMaterial, fishMesh);
-        Debug.Log("Made Fish");
 
-        // Create predator
-        generateEntity(StaticPredatorData.getArchetype(), 1, constructPredatorComponent, predatorMaterial, predatorMesh);
-        Debug.Log("Made Predator");
+        // EntityQuery m_Group_p = GetEntityQuery(ComponentType.ReadOnly<PredatorPropertiesComponent>());
+        // NativeArray <PredatorPropertiesComponent> predators = m_Group_p.ToComponentDataArray<PredatorPropertiesComponent>(Allocator.TempJob);
 
-        currentSimulationFrame = 0;
+        float fishCaughtScore = 0.0f;
+        for (int i = 0; i < predatorEntityArray.Length; i++) {
+            PredatorPropertiesComponent predator = entityManager.GetComponentData<PredatorPropertiesComponent>(predatorEntityArray[i]);
+            fishCaughtScore += predator.numOfFishCaught;
+
+        }
+
+        disposeOfEntityArray(predatorEntityArray);
+
+        // fishCaughtScore = 0.0f;
+        // for(int i = 0; i<currentChromosome.Genes.Length; i++) {
+        //     fishCaughtScore += currentChromosome.Genes[i];
+        // }
+        Debug.Log("current chromosome score: " + fishCaughtScore);
+     
+
+        // float fitnessScore = StaticPredatorData.getNumOfFishCaught();
+        currentChromosome.FitnessScore = fishCaughtScore;
+
+        if(!geneticAlgorithm.IsFinished) {
+
+            if(!geneticAlgorithm.IsGenerationFinished) {
+
+                currentChromosome = geneticAlgorithm.GetNextChromosome();
+
+            }
+            else {
+                
+                bestChromosome = geneticAlgorithm.GetBest();
+
+                // float bestScore = 0.0f;
+                // for(int i = 0; i<bestChromosome.Genes.Length; i++) {
+                //     bestScore += bestChromosome.Genes[i];
+                // }            
+                // Debug.Log("!! best chromosome --->" + bestScore );
+
+                Debug.Log("!! best chromosome --->" + bestChromosome.Genes[0] );
+
+
+                if(!geneticAlgorithm.IsFinished) {
+                    geneticAlgorithm.CreateNextGeneration();
+                    currentChromosome = geneticAlgorithm.GetNextChromosome();
+                }
+                else {
+
+                    // bestScore = 0.0f;
+                    // for(int i = 0; i<bestChromosome.Genes.Length; i++) {
+                    //     bestScore += bestChromosome.Genes[i];
+                    // }            
+                    // Debug.Log("!! Final best chromosome  --->" + bestScore );   
+
+                    Debug.Log("!! Final best chromosome --->" + bestChromosome.Genes[0] );
+                    return;                 
+                }
+
+            }
+
+            cleanUp();
+            // Debug.Log("Cleared Entities");
+
+            // Create fish
+            fishEntityArray = generateEntity(StaticFishData.getArchetype(), agentNumberParam, constructFishComponent, fishMaterial, fishMesh);
+            disposeOfEntityArray(fishEntityArray);
+            // Debug.Log("Made Fish");
+
+            float[] evolvingParameters = currentChromosome.Genes;
+            StaticPredatorData.setEvolve(evolvingParameters);
+
+            // Create predator
+            predatorEntityArray = generateEntity(StaticPredatorData.getArchetype(), 1, constructPredatorComponent, predatorMaterial, predatorMesh);
+
+            // Debug.Log("Made Predator");
+
+            currentSimulationFrame = 0;
+
+        }
+        else {
+            
+            return;
+        }
+
     }
 
     // Kill every entity
@@ -83,8 +178,8 @@ public class SimulationController : MonoBehaviour {
     }
 
     // Create new entities
-    private void generateEntity(EntityArchetype entityArchetype, int agentNumber, Func<IComponentData> f, Material material, Mesh mesh) {
-        NativeArray<Entity> entityArray = new NativeArray<Entity>(agentNumber, Allocator.Temp);
+    private NativeArray<Entity> generateEntity(EntityArchetype entityArchetype, int agentNumber, Func<IComponentData> f, Material material, Mesh mesh) {
+        NativeArray<Entity> entityArray = new NativeArray<Entity>(agentNumber, Allocator.Persistent);
         entityManager.CreateEntity(entityArchetype, entityArray);
 
         float bl = 0.1f;
@@ -106,8 +201,11 @@ public class SimulationController : MonoBehaviour {
             entityManager.SetComponentData(entity, new Scale {Value = bl / 2});
         }
 
-        entityArray.Dispose();
+        return entityArray;
+    }
 
+    private void disposeOfEntityArray(NativeArray<Entity> entityArray) {
+        entityArray.Dispose();
     }
 
     // Predefined component for Fish
@@ -158,6 +256,7 @@ public class SimulationController : MonoBehaviour {
             mostIsolated = StaticPredatorData.getNextInt(),
 
             lockOnDistance = StaticPredatorData.getNextEvolve(),
+            numOfFishCaught = StaticPredatorData.getNumOfFishCaught(),
         };
     }
 

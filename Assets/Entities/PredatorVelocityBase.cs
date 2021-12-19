@@ -118,7 +118,8 @@ public class PredatorVelocityBase : SystemBase {
 
                     //if the fish is less than 1 bl away from the fish, we say the prey ate the fish
                     if (math.distance(predatorPosition, positions[targetFishArrayIndex].position) < 0.1f) {
-                        Debug.Log("I caught the fish!");
+                        // Debug.Log("I caught the fish!");
+                        predator.numOfFishCaught++;
                         //setup the fish with the id to be eaten
                         predator.fishToEat = predator.mostIsolated;
                         //maybe we need a critical section

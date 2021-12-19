@@ -23,22 +23,22 @@ public class Chromosome
         this.GenerateNewGenes();
     }
 
-    public float CalculateFitnessScore(){
+    // public float CalculateFitnessScore(){
 
-        // run simulation
-        // get number of fish caught and return it as score
+    //     // run simulation
+    //     // get number of fish caught and return it as score
 
-        // just a temporary testing code, tries to evolve a gene that sums up to the biggest number
+    //     // just a temporary testing code, tries to evolve a gene that sums up to the biggest number
 
-        float genesSum = 0;
-        for(int i=0; i<this.genesLength; i++) {
-            genesSum += genes[i];
-        }
+    //     float genesSum = 0;
+    //     for(int i=0; i<this.genesLength; i++) {
+    //         genesSum += genes[i];
+    //     }
 
-        this.fitnessScore = genesSum;
+    //     this.fitnessScore = genesSum;
 
-        return genesSum;
-    }
+    //     return genesSum;
+    // }
 
     public void GenerateNewGenes(){
 
@@ -48,7 +48,7 @@ public class Chromosome
     }
 
     public float GenerateSingleGeneFloat() {
-        return UnityEngine.Random.Range(-10.0f, 10.0f);
+        return UnityEngine.Random.Range(0.0f, 100.0f);
     }
 
     public void Mutate() {
@@ -72,12 +72,8 @@ public class Chromosome
  
             float crossoverProbability = UnityEngine.Random.Range(0.0f, 1.0f);
  
-            if (crossoverProbability < 0.5) {
-                childGenes[i] = this.genes[i];
-            }
-            else {
-                childGenes[i] = partner.Genes[i];
-            }
+            childGenes[i] = crossoverProbability*this.Genes[i] + (1-crossoverProbability)*partner.Genes[i];
+           
         }
         
         Chromosome childChromosome = new Chromosome(this.mutationRate, this.genesLength);

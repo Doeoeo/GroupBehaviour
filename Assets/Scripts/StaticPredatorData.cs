@@ -54,6 +54,9 @@ public static class StaticPredatorData {
         -1                                                                                          // Most isolated  
     };
 
+
+    private static float numOfFishCaught = 0.0f;
+
     public static float getNextFloat() { return floatData[floatIndex++]; }
     public static float3 getNextFloat3() { return float3Data[float3Index++]; }
 
@@ -61,8 +64,8 @@ public static class StaticPredatorData {
 
     public static int getNextInt() { return intData[intIndex++]; }
 
-    public static float getNextEvolve() { return toEvolve[evolveIndex++]; }
-
+    public static float[] getEvolve() { return toEvolve; }
+    public static float getNextEvolve() {return toEvolve[evolveIndex++];} 
     public static void setEvolve(float[] newGene) { toEvolve = newGene; }
 
     public static float getBl() { return bl; }
@@ -71,4 +74,7 @@ public static class StaticPredatorData {
     public static EntityArchetype getArchetype() { return entityArchetype; }
 
     public static void reset() { floatIndex = 0; float3Index = 0; intIndex = 0; evolveIndex = 0; }
+
+    public static float getNumOfFishCaught() { return numOfFishCaught; }
+    public static void setNumOfFishCaught(float fishCaught) { numOfFishCaught = fishCaught; }
 }
