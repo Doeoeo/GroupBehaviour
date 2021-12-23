@@ -26,6 +26,7 @@ public class FishAgentCreator : MonoBehaviour{
     [SerializeField] private int predatorNumber;
 
     [SerializeField] public SimpleTactic simpleTactic;
+    [SerializeField] public bool debug;
 
     public static FishAgentCreator Instance;
     // Start is called before the first frame update

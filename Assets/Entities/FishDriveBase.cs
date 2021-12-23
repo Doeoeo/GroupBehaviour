@@ -78,6 +78,7 @@ public class FishDriveBase : SystemBase {
                         float blindAngle = Vector3.Angle(fish.speed, fish.position - positions[i].position);
 
                         // Check if we are comparing to ourselves (could be safer to do with index) and if compared agent is behind the selected agent
+                        /// TODO(miha): Vector3.Angle retruns angle between 0 and 180! Change the if statement.. < 165 is the good statemnt?
                         if (comparedDistance != 0 && (blindAngle < 165 || blindAngle > 195)) {
 
                             // Check if compared agent is too close
