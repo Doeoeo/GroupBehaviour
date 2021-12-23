@@ -25,6 +25,8 @@ public class FishAgentCreator : MonoBehaviour{
     [SerializeField] private Material predatorMaterial;
     [SerializeField] private int predatorNumber;
 
+    [SerializeField] public SimpleTactic simpleTactic;
+
     public static FishAgentCreator Instance;
     // Start is called before the first frame update
     private void Awake() {
@@ -42,7 +44,7 @@ public class FishAgentCreator : MonoBehaviour{
         );
 
         EntityArchetype predatorArchetype = entityManager.CreateArchetype(
-            typeof(PredatorPropertiesComponent),
+            typeof(PredatorSTPropertiesComponent),
             typeof(Translation),
             typeof(RenderMesh),
             typeof(LocalToWorld),
@@ -57,11 +59,13 @@ public class FishAgentCreator : MonoBehaviour{
         entityManager.CreateEntity(fishArchetype, fishArray);
         entityManager.CreateEntity(predatorArchetype, predatorArray);
 
-        float bl = 0.1f;
+        float bl = 0.2f;
+        float3 s = new float3(UnityEngine.Random.Range(-3f, 3f), UnityEngine.Random.Range(-3f, 3f), 0f);
 
         for(int i = 0; i < fishArray.Length; i++) {
             Entity fish = fishArray[i];
 
+            // TODO(miha): Set fish in one location with same-ish velocity vector.
             Vector3 pos = new float3(UnityEngine.Random.Range(-3f, 3f), UnityEngine.Random.Range(-3f, 3f), 0);
             Vector3 sp = new float3(1, 1, 0);
 
@@ -85,7 +89,7 @@ public class FishAgentCreator : MonoBehaviour{
                 len = bl,
                 direction = new float3(0, 0, 0),
                 position = new float3(pos),
-                speed = new float3(UnityEngine.Random.Range(-3f, 3f), UnityEngine.Random.Range(-3f, 3f), 0),
+                speed = s,
             });
 
             entityManager.SetComponentData(fish, new Translation {
@@ -105,23 +109,24 @@ public class FishAgentCreator : MonoBehaviour{
         for(int i = 0; i < predatorArray.Length; i++) {
             Entity predator = predatorArray[i];
 
-            Vector3 pos = new float3(UnityEngine.Random.Range(-3f, 3f), UnityEngine.Random.Range(-3f, 3f), 0);
+            Vector3 pos = new float3(UnityEngine.Random.Range(-5f, 5f), UnityEngine.Random.Range(-5f, 5f), 0);
 
-            entityManager.SetComponentData(predator, new PredatorPropertiesComponent {
+            entityManager.SetComponentData(predator, new PredatorSTPropertiesComponent {
                 vM = 6 * bl,
                 vC = 3 * bl,
                 mA = 0,
                 len = bl * 6,
-                status = -2,
-                closestFish = -1,
+                catchDistance = bl * 6,
                 fishToEat = -1,
                 centerFish = -1,
                 mostIsolated = -1,
-                restTime = 400,
-                remainingRest = 400,
+                restTime = 100,
+                remainingRest = 0,
                 direction = new float3(0, 0, 0),
                 position = new float3(pos),
-                speed = new float3(UnityEngine.Random.Range(-3f, 3f), UnityEngine.Random.Range(-3f, 3f), 0),
+                speed = new float3(0.1f, 0.0f, 0.0f), //new float3(UnityEngine.Random.Range(-3f, 3f), UnityEngine.Random.Range(-3f, 3f), 0),
+                tactic = SimpleTactic.Nearest,
+                state = State.Cruising,
             });
 
             entityManager.SetComponentData(predator, new Translation {

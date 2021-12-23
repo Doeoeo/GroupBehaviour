@@ -19,6 +19,9 @@ using Unity.Mathematics;
 [UpdateAfter(typeof(FishDriveBase))]
 public class FishVelocityBase : SystemBase {
 
+    static uint seed = (uint) (UnityEngine.Random.value * 10000);
+    static Unity.Mathematics.Random rnd = new Unity.Mathematics.Random(seed);
+
     protected int b = 0;
     protected override void OnUpdate() {
         float dt = Time.DeltaTime;
@@ -41,6 +44,7 @@ public class FishVelocityBase : SystemBase {
                     fishProperties.bW = 0;
                 }
 
+
                 // Adjust acceleration and add it to agent's velocity 
                 float3 a = fishProperties.sW * fishProperties.sD + fishProperties.aW * fishProperties.aD + fishProperties.cW * fishProperties.cD
                          + fishProperties.bW * fishProperties.bD + fishProperties.eW * fishProperties.eD;
@@ -50,6 +54,10 @@ public class FishVelocityBase : SystemBase {
                 if(((Vector3)fishProperties.speed).magnitude > fishProperties.vM) {
                     fishProperties.speed = ((float3)((Vector3)fishProperties.speed).normalized) * fishProperties.vM;
                 }
+
+                // TODO(miha): Create a better way for variying the speed of fish.
+                fishProperties.speed += rnd.NextFloat(-0.05f, 0.05f);
+                fishProperties.speed.z = 0.0f;
 
                 // Draw all forces affecting the agent. With wrong Unity settings this can slow performance
                 Debug.DrawLine(fishProperties.position, fishProperties.position + fishProperties.bD * fishProperties.bW, Color.blue);

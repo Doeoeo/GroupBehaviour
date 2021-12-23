@@ -29,3 +29,20 @@ public class PredatorMovementBase : SystemBase {
     }
 }
 
+[UpdateAfter(typeof(PredatorSTVelocityBase))]
+public class PredatorSTMovementBase : SystemBase {
+    protected override void OnUpdate() {
+        float dt = Time.DeltaTime;
+        Entities
+            .WithReadOnly(dt)
+            .ForEach((ref Translation translation, ref PredatorSTPropertiesComponent predatorProperties, ref Rotation rotation) => {
+
+                predatorProperties.position += predatorProperties.speed * dt;
+                translation.Value = predatorProperties.position;
+                Debug.DrawLine(predatorProperties.position, predatorProperties.position + predatorProperties.speed, Color.red);
+                rotation.Value = quaternion.LookRotation(predatorProperties.speed,Vector3.up);
+        }).Run();
+        
+
+    }
+}

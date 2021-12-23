@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.44947392, g: 0.49954665, b: 0.57568693, a: 1}
+  m_IndirectSpecularColor: {r: 0.4494738, g: 0.4995466, b: 0.5756872, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -249,10 +249,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fishMesh: {fileID: 3339987848490680739, guid: fbf5785e33f8f1a42ac1ff8318da7943, type: 3}
   fishMaterial: {fileID: 2100000, guid: 93c4b175ecd668147a2f809f2b1da698, type: 2}
-  fishNumber: 20
+  fishNumber: 50
   predatorMesh: {fileID: 3339987848490680739, guid: fbf5785e33f8f1a42ac1ff8318da7943, type: 3}
   predatorMaterial: {fileID: 2100000, guid: d74222a0958099d4484246b2db0a25bf, type: 2}
   predatorNumber: 1
+  simpleTactic: 1
 --- !u!4 &457921350
 Transform:
   m_ObjectHideFlags: 0
