@@ -13,6 +13,9 @@ using Unity.Mathematics;
  *      - Probably best to initialize predator here to avoid any racing conditions not sure
  *      - Set spawn area to match the roosting area 
  *      - Play with weights to possibly avoid collisions
+ *      
+ *  NEW:
+ *      - Added an isActive toggle to avoid double spawning
  */
 
 public class FishAgentCreator : MonoBehaviour{
@@ -25,13 +28,18 @@ public class FishAgentCreator : MonoBehaviour{
     [SerializeField] private Material predatorMaterial;
     [SerializeField] private int predatorNumber;
 
+    [SerializeField] public bool isActive;
+
     [SerializeField] public SimpleTactic simpleTactic;
     [SerializeField] public bool debug;
 
     public static FishAgentCreator Instance;
+    [SerializeField] public bool isActive;
+
     // Start is called before the first frame update
-    private void Awake() {
-        Instance = this;
+    private void Start() {
+        if (!isActive) return;
+        Instance = this; // NOTE(miha): Quick dirty fix?
         EntityManager entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 
         EntityArchetype fishArchetype = entityManager.CreateArchetype(

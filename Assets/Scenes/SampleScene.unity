@@ -247,13 +247,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bcfb80841bbed174cac31c7580ddae79, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fishMesh: {fileID: 3339987848490680739, guid: fbf5785e33f8f1a42ac1ff8318da7943, type: 3}
+  fishMesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
   fishMaterial: {fileID: 2100000, guid: 93c4b175ecd668147a2f809f2b1da698, type: 2}
   fishNumber: 50
   predatorMesh: {fileID: 3339987848490680739, guid: fbf5785e33f8f1a42ac1ff8318da7943, type: 3}
   predatorMaterial: {fileID: 2100000, guid: d74222a0958099d4484246b2db0a25bf, type: 2}
   predatorNumber: 1
   simpleTactic: 1
+=======
+  fishNumber: 20
+  predatorMesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
+  predatorMaterial: {fileID: 2100000, guid: d74222a0958099d4484246b2db0a25bf, type: 2}
+  predatorNumber: 1
+  isActive: 0
+>>>>>>> main
 --- !u!4 &457921350
 Transform:
   m_ObjectHideFlags: 0
@@ -268,6 +275,55 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &646630851
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 646630852}
+  - component: {fileID: 646630853}
+  m_Layer: 0
+  m_Name: Simulation Controller
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &646630852
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 646630851}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1.0384041, y: -8.5741, z: 16.517006}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &646630853
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 646630851}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f3cee5ba0f9502e41adf737fac5dda0c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fishMesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
+  fishMaterial: {fileID: 2100000, guid: 93c4b175ecd668147a2f809f2b1da698, type: 2}
+  predatorMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  predatorMaterial: {fileID: 2100000, guid: d74222a0958099d4484246b2db0a25bf, type: 2}
+  agentNumberParam: 100
+  isActive: 1
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
@@ -372,6 +428,7 @@ GameObject:
   - component: {fileID: 963194228}
   - component: {fileID: 963194227}
   - component: {fileID: 963194226}
+  - component: {fileID: 963194229}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -444,3 +501,20 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &963194229
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963194225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0c6a969d7ef9844092a5eb5c660f98b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cameraSensitivity: 90
+  climbSpeed: 4
+  normalMoveSpeed: 10
+  slowMoveFactor: 0.25
+  fastMoveFactor: 3

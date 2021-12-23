@@ -11,10 +11,11 @@ using Unity.Mathematics;
  */
 // FishMovementBase must wait for velocities to be computed or we repeat previous move
 [UpdateAfter(typeof(PredatorVelocityBase))]
+[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 public class PredatorMovementBase : SystemBase {
     protected int b = 0;
     protected override void OnUpdate() {
-        float dt = Time.DeltaTime;
+        float dt = 0.2f;
         Entities
             .WithReadOnly(dt)
             .ForEach((ref Translation translation, ref PredatorPropertiesComponent predatorProperties, ref Rotation rotation) => {

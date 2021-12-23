@@ -13,10 +13,14 @@ using Unity.Mathematics;
  *      - When predator is added uncoment its contribution
  *      - Should probably fix the hardcoded roosting radius 
  *      - Roosting area check could probably be moved to FishDriveBase
+ *  NEW:
+ *      - Added [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))] for fixed update calling
+ *      - dt is now hardcoded to 0.2f because delta time is not very low (this is roughly equal to the old Time.deltaTIme)
  */
 
 // FishVelocityBase has to wait for drives to be computed or we repeat previous state
 [UpdateAfter(typeof(FishDriveBase))]
+[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 public class FishVelocityBase : SystemBase {
 
     static uint seed = (uint) (UnityEngine.Random.value * 10000);
@@ -24,8 +28,7 @@ public class FishVelocityBase : SystemBase {
 
     protected int b = 0;
     protected override void OnUpdate() {
-        float dt = Time.DeltaTime;
-
+        float dt = 0.2f;
         Entities
             .WithoutBurst()
             .WithAll<FishPropertiesComponent>()
