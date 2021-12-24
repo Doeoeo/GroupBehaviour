@@ -33,13 +33,9 @@ public class FishAgentCreator : MonoBehaviour{
     [SerializeField] public SimpleTactic simpleTactic;
     [SerializeField] public bool debug;
 
-    public static FishAgentCreator Instance;
-    [SerializeField] public bool isActive;
-
     // Start is called before the first frame update
     private void Start() {
         if (!isActive) return;
-        Instance = this; // NOTE(miha): Quick dirty fix?
         EntityManager entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 
         EntityArchetype fishArchetype = entityManager.CreateArchetype(
@@ -119,6 +115,25 @@ public class FishAgentCreator : MonoBehaviour{
             Entity predator = predatorArray[i];
 
             Vector3 pos = new float3(UnityEngine.Random.Range(-5f, 5f), UnityEngine.Random.Range(-5f, 5f), 0);
+
+            /*
+            entityManager.SetComponentData(predator, new PredatorPropertiesComponent {
+                vM = 6 * bl,
+                vC = 3 * bl,
+                mA = 0,
+                len = bl * 6,
+                status = -2,
+                closestFish = -1,
+                fishToEat = -1,
+                centerFish = -1,
+                mostIsolated = -1,
+                restTime = 400,
+                remainingRest = 400,
+                direction = new float3(0, 0, 0),
+                position = new float3(pos),
+                speed = new float3(UnityEngine.Random.Range(-3f, 3f), UnityEngine.Random.Range(-3f, 3f), 0),
+            });
+            */
 
             entityManager.SetComponentData(predator, new PredatorSTPropertiesComponent {
                 vM = 6 * bl,

@@ -108,10 +108,10 @@ public class FishDriveBase : SystemBase {
 
                     }
                 }
-            }
 
                 //chech distance to all predators
             for (int i = 0; i < predatorPositions.Length; i++) {
+                float blindAngle = Vector3.Angle(fish.speed, fish.position - predatorPositions[i].position);
                 float comparedDistance = math.distance(fishPosition, predatorPositions[i].position);
                     //find predators that are closer than 
                     if (comparedDistance < escapeRadius && (blindAngle < 165 || blindAngle > 195)) {

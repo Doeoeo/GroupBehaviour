@@ -190,6 +190,7 @@ public enum SimpleTactic {
     Peripheral = 3
 } 
 
+[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 public class PredatorSTVelocityBase : SystemBase {
     private EntityQuery m_Group;
     private FishAgentCreator controller;
@@ -238,7 +239,7 @@ public class PredatorSTVelocityBase : SystemBase {
 
     // NOTE(miha): returns preyCenter (struct of position and speed) and
     // minIndex (nearest fish at the current frame to the preddator).
-    static SimpleTacticInfo nearestTactic(in PredatorSTPropertiesComponent predator, NativeArray<FishPropertiesComponent> positions) {
+    static SimpleTacticInfo nearestTactic(in PredatorSTPropertiesComponent predator, ref NativeArray<FishPropertiesComponent> positions) {
         SimpleTacticInfo result = default(SimpleTacticInfo);
 
         float minDistance = ((Vector3)positions[0].position - (Vector3)predator.position).magnitude;
@@ -360,16 +361,6 @@ public class PredatorSTVelocityBase : SystemBase {
     }
 
     protected override void OnUpdate() {
-        if (!controller) {
-            controller = FishAgentCreator.Instance;
-        }
-
-        if (controller) {
-            float dt = Time.DeltaTime;
-            Vector3 mouseLocation = Input.mousePosition;
-            Vector3 screenPoint = Camera.main.ScreenToWorldPoint(mouseLocation);
-            screenPoint.z = 0f;
-
             //Query to get all fish components
             m_Group = GetEntityQuery(ComponentType.ReadOnly<FishPropertiesComponent>());
             NativeArray <FishPropertiesComponent> positions = m_Group.ToComponentDataArray<FishPropertiesComponent>(Allocator.TempJob);
@@ -382,11 +373,15 @@ public class PredatorSTVelocityBase : SystemBase {
                 .WithNativeDisableContainerSafetyRestriction(positions)
                 .ForEach((Entity selectedEntity, ref Translation predatorTranslation, 
                           ref PredatorSTPropertiesComponent predator) => {
+                     float3 predatorPosition = new float3(predatorTranslation.Value);
+
+                     if(!controller)
+                        controller = FishAgentCreator.Instance;
 
                      SimpleTacticInfo tacticInfo = default(SimpleTacticInfo);
                      // NOTE(miha): Choose which tactit predator will use.
                      if(controller.simpleTactic == SimpleTactic.Nearest) {
-                         tacticInfo = nearestTactic(predator, positions);
+                         tacticInfo = nearestTactic(predator, ref positions);
                      }
                      if(controller.simpleTactic == SimpleTactic.Center) {
                          tacticInfo = centerTactic(predator, positions);
@@ -455,6 +450,6 @@ public class PredatorSTVelocityBase : SystemBase {
 
             predatorPositions.Dispose();
             positions.Dispose();
-        }
+        
     }
 }

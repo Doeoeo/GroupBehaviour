@@ -31,9 +31,10 @@ public class PredatorMovementBase : SystemBase {
 }
 
 [UpdateAfter(typeof(PredatorSTVelocityBase))]
+[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 public class PredatorSTMovementBase : SystemBase {
     protected override void OnUpdate() {
-        float dt = Time.DeltaTime;
+        float dt = 0.2f;
         Entities
             .WithReadOnly(dt)
             .ForEach((ref Translation translation, ref PredatorSTPropertiesComponent predatorProperties, ref Rotation rotation) => {

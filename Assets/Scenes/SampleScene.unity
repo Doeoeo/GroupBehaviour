@@ -254,13 +254,6 @@ MonoBehaviour:
   predatorMaterial: {fileID: 2100000, guid: d74222a0958099d4484246b2db0a25bf, type: 2}
   predatorNumber: 1
   simpleTactic: 1
-=======
-  fishNumber: 20
-  predatorMesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
-  predatorMaterial: {fileID: 2100000, guid: d74222a0958099d4484246b2db0a25bf, type: 2}
-  predatorNumber: 1
-  isActive: 0
->>>>>>> main
 --- !u!4 &457921350
 Transform:
   m_ObjectHideFlags: 0
