@@ -49,7 +49,17 @@ public struct PredatorSTPropertiesComponent : IComponentData
     public SimpleTactic tactic;
     public State state;
 
-    public int nearestFish;
+    public int targetFish;
     public int centerFish;                                        //Central fish for hunting
     public int peripheralFish;
+
+    public float confusionProbability;
+
+    public int numOfFishCaught;
+
+    // TODO(miha): There is 25% for confusion... Don't need to keep statistic
+    // how many attacks predator performed.. unless it is decided that
+    // confusion is based on some other parameters (eg. angle of attack, speed
+    // of attack, ect.).
+    public int numOfAttacks;
 }

@@ -28,8 +28,5 @@ public class FishMovementBase : SystemBase {
                 translation.Value = fishProperties.position;
                 rotation.Value = quaternion.LookRotation(fishProperties.speed,Vector3.up);
         }).Run();
-        
-
     }
 }
-

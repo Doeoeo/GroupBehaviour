@@ -25,17 +25,13 @@ public class FishDriveBase : SystemBase {
 
     private EntityQuery m_Group;
     private EntityQuery m_Group_p;
-    private FishAgentCreator controller;
-
-    static Vector3 Flee(in FishPropertiesComponent p, Vector3 target) {
-        Vector3 desired = (Vector3)p.position - target;
-        desired = desired.normalized;
-        desired *= p.vM;
-        Vector3 steer = desired - (Vector3)p.speed;
-        return steer;
-    }
+    private static FishAgentCreator controller;
 
     protected override void OnUpdate() {
+        if (!controller) {
+            controller = FishAgentCreator.Instance;
+        }
+
         // Copied for initialisation order safety not sure if required
         // Querry over all entities to use in our forEach
         m_Group = GetEntityQuery(ComponentType.ReadOnly<FishPropertiesComponent>());
@@ -58,8 +54,11 @@ public class FishDriveBase : SystemBase {
                 float3 fishPosition = new float3(fishTranslation.Value);
 
                 // Radiai for each drive
-                float seperationRadius = 5 * fish.len, alignmentRadius = 25 * fish.len, 
-                    cohesionRadius = 100 * fish.len, escapeRadius = 20 * fish.len;
+                // NOTE(miha): fish.len is 0.2f
+                float seperationRadius = controller.seperationRadius * fish.len;
+                float alignmentRadius = controller.alignmentRadius * fish.len;
+                float cohesionRadius = controller.cohesionRadius * fish.len;
+                float escapeRadius = controller.escapeRadius * fish.len;
 
                 // Data for drive calculations
                 float3 seperationDrive = new float3(0, 0, 0), alignmentDrive = new float3(0, 0, 0), 
@@ -78,8 +77,7 @@ public class FishDriveBase : SystemBase {
                     float blindAngle = Vector3.Angle(fish.speed, fish.position - positions[i].position);
 
                     // Check if we are comparing to ourselves (could be safer to do with index) and if compared agent is behind the selected agent
-                    /// TODO(miha): Vector3.Angle retruns angle between 0 and 180! Change the if statement.. < 165 is the good statemnt?
-                    if (comparedDistance != 0 && (blindAngle < 165 || blindAngle > 195)) {
+                    if (comparedDistance != 0 && (blindAngle < 165)) {
 
                         // Check if compared agent is too close
                         if (comparedDistance < seperationRadius) {
@@ -100,19 +98,18 @@ public class FishDriveBase : SystemBase {
                             cohesionCount++;
                             cohesionDrive += positions[i].position - fish.position;
                             
-                            // NOTE(Miha): This is calculation of peripherality
-                            // for mixture of simple tactics as in the paper.
-                            peripheralityVector += (positions[i].position - fish.position) / comparedDistance;
-                            peripheralityCount++;
                         }
+                        // NOTE(Miha): This is calculation of peripherality
+                        // for mixture of simple tactics as in the paper.
+                        peripheralityVector += (positions[i].position - fish.position) / comparedDistance;
+                        peripheralityCount++;
 
                     }
                 }
 
                 //chech distance to all predators
-            for (int i = 0; i < predatorPositions.Length; i++) {
-                float blindAngle = Vector3.Angle(fish.speed, fish.position - predatorPositions[i].position);
-                float comparedDistance = math.distance(fishPosition, predatorPositions[i].position);
+                for (int i = 0; i < predatorPositions.Length; i++) { float blindAngle = Vector3.Angle(fish.speed, fish.position - predatorPositions[i].position);
+                    float comparedDistance = math.distance(fishPosition, predatorPositions[i].position);
                     //find predators that are closer than 
                     if (comparedDistance < escapeRadius && (blindAngle < 165 || blindAngle > 195)) {
                         escapeCount++;
@@ -135,7 +132,6 @@ public class FishDriveBase : SystemBase {
                 fish.eD = escapeDrive; 
                 fish.peripherality = ((Vector3)peripheralityVector).magnitude;
                 fish.peripheralityVector = peripheralityVector;
-                Debug.Log("PretiphelityVector:" + peripheralityVector);
 
         }).ScheduleParallel();
 

@@ -18,6 +18,10 @@ using Unity.Mathematics;
  *      - Added an isActive toggle to avoid double spawning
  */
 
+// TODO(miha): Create few helper functions - to create fishes, predators, ...
+// TODO(miha): Create serilizers for weights and radii
+// TODO(miha): Maybe predator goes to the -1 * followGroup after catching fish.
+
 public class FishAgentCreator : MonoBehaviour{
 
     [SerializeField] private Mesh fishMesh;
@@ -31,11 +35,33 @@ public class FishAgentCreator : MonoBehaviour{
     [SerializeField] public bool isActive;
 
     [SerializeField] public SimpleTactic simpleTactic;
-    [SerializeField] public bool debug;
+    [SerializeField] public bool fishDebug;
+    [SerializeField] public bool predatorDebug;
+
+    [SerializeField] public float seperationWeight;
+    [SerializeField] public float seperationRadius;
+    [SerializeField] public float alignmentWeight;
+    [SerializeField] public float alignmentRadius;
+    [SerializeField] public float cohesionWeight;
+    [SerializeField] public float cohesionRadius;
+    [SerializeField] public float escapeWeight;
+    [SerializeField] public float escapeRadius;
+    [SerializeField] public float borderRadius;
+    [SerializeField] public float maxAcceleration;
+    [SerializeField] public float cruisingVelocity;
+    [SerializeField] public float maxVelocity;
+
+    public Transform predatorCamera;
+
+    public static FishAgentCreator Instance;
 
     // Start is called before the first frame update
     private void Start() {
         if (!isActive) return;
+        Instance = this;
+
+        predatorCamera = gameObject.transform.Find("PredatorPosition");
+
         EntityManager entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 
         EntityArchetype fishArchetype = entityManager.CreateArchetype(
@@ -65,15 +91,16 @@ public class FishAgentCreator : MonoBehaviour{
         entityManager.CreateEntity(predatorArchetype, predatorArray);
 
         float bl = 0.2f;
+
+        // NOTE(miha): Every fish have the same speed vector, but diffrent
+        // position. This way the fish are already aligned from the start of
+        // teh simulation.
         float3 s = new float3(UnityEngine.Random.Range(-3f, 3f), UnityEngine.Random.Range(-3f, 3f), 0f);
 
         for(int i = 0; i < fishArray.Length; i++) {
             Entity fish = fishArray[i];
 
-            // TODO(miha): Set fish in one location with same-ish velocity vector.
             Vector3 pos = new float3(UnityEngine.Random.Range(-3f, 3f), UnityEngine.Random.Range(-3f, 3f), 0);
-            Vector3 sp = new float3(1, 1, 0);
-
 
             entityManager.SetComponentData(fish, new FishPropertiesComponent {
                 id = i,
@@ -85,12 +112,11 @@ public class FishAgentCreator : MonoBehaviour{
                 cD = new float3(0, 0, 0),
                 eD = new float3(0, 0, 0),
                 bD = new float3(0, 0, 0),
-                sW = 5,
-                aW = 0.3f,
-                cW = 1,
-                eW = 5,
-                bW = 0,
-                mA = 0,
+                sW = 1,
+                aW = this.alignmentWeight,
+                cW = this.cohesionWeight,
+                eW = this.escapeWeight,
+                mA = this.maxAcceleration,
                 len = bl,
                 direction = new float3(0, 0, 0),
                 position = new float3(pos),
@@ -113,6 +139,11 @@ public class FishAgentCreator : MonoBehaviour{
 
         for(int i = 0; i < predatorArray.Length; i++) {
             Entity predator = predatorArray[i];
+
+            int xSign = (UnityEngine.Random.Range(0,2)*2-1);
+            int ySign = (UnityEngine.Random.Range(0,2)*2-1);
+            float x = xSign * UnityEngine.Random.Range(0f, 2f) + (3 * xSign);
+            float y = ySign * UnityEngine.Random.Range(0f, 2f) + (3 * ySign);
 
             Vector3 pos = new float3(UnityEngine.Random.Range(-5f, 5f), UnityEngine.Random.Range(-5f, 5f), 0);
 
@@ -137,20 +168,22 @@ public class FishAgentCreator : MonoBehaviour{
 
             entityManager.SetComponentData(predator, new PredatorSTPropertiesComponent {
                 vM = 6 * bl,
-                vC = 3 * bl,
+                vC = 6 * bl,
                 mA = 0,
                 len = bl * 6,
-                catchDistance = bl * 6,
+                catchDistance = bl,
                 fishToEat = -1,
                 centerFish = -1,
                 mostIsolated = -1,
-                restTime = 100,
+                restTime = 30,
                 remainingRest = 0,
                 direction = new float3(0, 0, 0),
                 position = new float3(pos),
                 speed = new float3(0.1f, 0.0f, 0.0f), //new float3(UnityEngine.Random.Range(-3f, 3f), UnityEngine.Random.Range(-3f, 3f), 0),
                 tactic = SimpleTactic.Nearest,
                 state = State.Cruising,
+                confusionProbability = 0.25f,
+                numOfFishCaught = 0,
             });
 
             entityManager.SetComponentData(predator, new Translation {
@@ -171,5 +204,11 @@ public class FishAgentCreator : MonoBehaviour{
         predatorArray.Dispose();
     }
 
+    void Update() {
+        // TODO(miha): Dynamicly update weights values. We can update them in
+        // some SystemBase.
+        Debug.Log("Position: " + predatorCamera.position);
+
+    }
 
 }

@@ -41,7 +41,7 @@ public class PredatorSTMovementBase : SystemBase {
 
                 predatorProperties.position += predatorProperties.speed * dt;
                 translation.Value = predatorProperties.position;
-                Debug.DrawLine(predatorProperties.position, predatorProperties.position + predatorProperties.speed, Color.red);
+                // Debug.DrawLine(predatorProperties.position, predatorProperties.position + predatorProperties.speed, Color.red);
                 rotation.Value = quaternion.LookRotation(predatorProperties.speed,Vector3.up);
         }).Run();
         

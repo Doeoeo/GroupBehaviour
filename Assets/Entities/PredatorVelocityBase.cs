@@ -18,6 +18,9 @@ public class PredatorVelocityBase : SystemBase {
     private FishAgentCreator controller;
 
     protected override void OnUpdate() {
+        if (!controller) {
+            controller = FishAgentCreator.Instance;
+        }
 
         //Query to get all fish components
         m_Group = GetEntityQuery(ComponentType.ReadOnly<FishPropertiesComponent>());
@@ -184,7 +187,6 @@ public enum State {
 }
 
 public enum SimpleTactic {
-    Random = 0,
     Nearest = 1,
     Center = 2,
     Peripheral = 3
@@ -193,7 +195,7 @@ public enum SimpleTactic {
 [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 public class PredatorSTVelocityBase : SystemBase {
     private EntityQuery m_Group;
-    private FishAgentCreator controller;
+    private static FishAgentCreator controller;
 
     static uint seed = (uint) (UnityEngine.Random.value * 10000);
     static Unity.Mathematics.Random rnd = new Unity.Mathematics.Random(seed);
@@ -235,11 +237,12 @@ public class PredatorSTVelocityBase : SystemBase {
         public int index;
         public float distance;
         public float3 followGroup;
+        public Entity fish;
     }
 
     // NOTE(miha): returns preyCenter (struct of position and speed) and
     // minIndex (nearest fish at the current frame to the preddator).
-    static SimpleTacticInfo nearestTactic(in PredatorSTPropertiesComponent predator, ref NativeArray<FishPropertiesComponent> positions) {
+    static SimpleTacticInfo nearestTactic(in PredatorSTPropertiesComponent predator, NativeArray<FishPropertiesComponent> positions) {
         SimpleTacticInfo result = default(SimpleTacticInfo);
 
         float minDistance = ((Vector3)positions[0].position - (Vector3)predator.position).magnitude;
@@ -248,11 +251,18 @@ public class PredatorSTVelocityBase : SystemBase {
         float3 preyCenterSpeed = new float3(0.0f, 0.0f, 0.0f);
 
         for(int i = 1; i < positions.Length; i++) {
-            float blindAngle = Vector3.Angle((Vector3)predator.position, (Vector3)positions[i].position);
-            bool preyInSight = (blindAngle > 60 || blindAngle < 120);
-
             float distance = ((Vector3)positions[i].position - (Vector3)predator.position).magnitude;
 
+            // NOTE(miha): blindAngle gets smaller and smaller as the predator is closer to the prey.
+            float blindAngle = Vector3.Angle(predator.speed, positions[i].speed);
+            // blindAngle /= 10f;
+            // blindAngle *= distance;
+            bool preyInSight = (blindAngle < 90f && distance < 20f);
+
+            if(controller.predatorDebug && preyInSight) {
+                Debug.DrawLine(predator.position, predator.position + predator.speed, Color.red);
+                Debug.DrawLine(predator.position, positions[i].position, Color.green);
+            }
 
             if(preyInSight && distance < minDistance) {
                 minDistance = distance;
@@ -263,9 +273,15 @@ public class PredatorSTVelocityBase : SystemBase {
             preyCenterSpeed += positions[i].speed;
         }
 
+        if(minIndex != 0) {
+            Debug.DrawLine(predator.position, positions[minIndex].position);
+            // Debug.DrawLine(new float3(0f, 0f, 0f) , predator.speed, Color.red);
+            // Debug.DrawLine(new float3(0f, 0f, 0f) , positions[maxIndex].speed, Color.green);
+        }
+
         preyCenterPosition /= positions.Length;
         preyCenterSpeed /= positions.Length;
-        float3 followGroup = preyCenterPosition + (preyCenterSpeed * -10.0f);
+        float3 followGroup = preyCenterPosition + (preyCenterSpeed * -7.0f);
 
         result.preyCenterPosition = preyCenterPosition;
         result.preyCenterSpeed = preyCenterSpeed;
@@ -287,10 +303,12 @@ public class PredatorSTVelocityBase : SystemBase {
         float3 preyCenterSpeed = new float3(0.0f, 0.0f, 0.0f);
 
         for(int i = 1; i < positions.Length; i++) {
-            float blindAngle = Vector3.Angle((Vector3)predator.position, (Vector3)positions[i].position);
-            bool preyInSight = (blindAngle > 60 || blindAngle < 120);
-            float peripherality = positions[i].peripherality;
             float distance = ((Vector3)positions[i].position - (Vector3)predator.position).magnitude;
+            float blindAngle = Vector3.Angle(predator.speed, positions[i].speed);
+            blindAngle /= 10f;
+            blindAngle *= distance;
+            bool preyInSight = (blindAngle < 90f);
+            float peripherality = positions[i].peripherality;
 
             if(preyInSight && peripherality < minPeripherality) {
                 minPeripherality = peripherality;
@@ -304,9 +322,15 @@ public class PredatorSTVelocityBase : SystemBase {
             preyCenterSpeed += positions[i].speed;
         }
 
+        if(minIndex != 0) {
+            Debug.DrawLine(predator.position, positions[minIndex].position);
+            // Debug.DrawLine(new float3(0f, 0f, 0f) , predator.speed, Color.red);
+            // Debug.DrawLine(new float3(0f, 0f, 0f) , positions[maxIndex].speed, Color.green);
+        }
+
         preyCenterPosition /= positions.Length;
         preyCenterSpeed /= positions.Length;
-        float3 followGroup = preyCenterPosition + (preyCenterSpeed * -10.0f);
+        float3 followGroup = preyCenterPosition + (preyCenterSpeed * -7.0f);
 
         result.preyCenterPosition = preyCenterPosition;
         result.preyCenterSpeed = preyCenterSpeed;
@@ -326,17 +350,25 @@ public class PredatorSTVelocityBase : SystemBase {
         float3 preyCenterPosition = new float3(0.0f, 0.0f, 0.0f);
         float3 preyCenterSpeed = new float3(0.0f, 0.0f, 0.0f);
 
+        float a = 0f;
+        float b = 0f;
+
         for(int i = 1; i < positions.Length; i++) {
             float peripherality = positions[i].peripherality;
             float distance = ((Vector3)positions[i].position - (Vector3)predator.position).magnitude;
-            float blindAngle = Vector3.Angle(predator.speed, predator.position - positions[i].position);
-            bool preyInSight = (blindAngle > 60 || blindAngle < 120);
+            float blindAngle = Vector3.Angle(predator.speed, positions[i].speed);
+            blindAngle /= 10f;
+            blindAngle *= distance;
+            bool preyInSight = (blindAngle < 90f);
 
             if(preyInSight && peripherality > maxPeripherality) {
-                Debug.DrawLine(predator.position, positions[i].position, Color.green);
-                Debug.Log("ANGLE: " + blindAngle);
+                if(controller.predatorDebug)
+                    Debug.DrawLine(predator.position, positions[i].position, Color.green);
+
                 maxPeripherality = peripherality;
                 maxIndex = i;
+                b = Vector3.Angle(predator.speed, positions[i].speed);
+                a = blindAngle;
             }
 
             if(distance < minDistance)
@@ -346,10 +378,17 @@ public class PredatorSTVelocityBase : SystemBase {
             preyCenterSpeed += positions[i].speed;
         }
 
+        if(controller.predatorDebug) {
+            // NOTE(miha): Draw line from predator to the targeted prey.
+            if(maxIndex != 0) 
+                Debug.DrawLine(predator.position, positions[maxIndex].position);
+        }
+
         preyCenterPosition /= positions.Length;
         preyCenterSpeed /= positions.Length;
-        Debug.DrawLine(predator.position, preyCenterPosition, Color.green);
-        float3 followGroup = preyCenterPosition + (preyCenterSpeed * -10.0f);
+        if(controller.predatorDebug)
+            Debug.DrawLine(predator.position, preyCenterPosition, Color.green);
+        float3 followGroup = preyCenterPosition + (preyCenterSpeed * -7.0f);
 
         result.preyCenterPosition = preyCenterPosition;
         result.preyCenterSpeed = preyCenterSpeed;
@@ -361,95 +400,106 @@ public class PredatorSTVelocityBase : SystemBase {
     }
 
     protected override void OnUpdate() {
-            //Query to get all fish components
-            m_Group = GetEntityQuery(ComponentType.ReadOnly<FishPropertiesComponent>());
-            NativeArray <FishPropertiesComponent> positions = m_Group.ToComponentDataArray<FishPropertiesComponent>(Allocator.TempJob);
-            //NativeArray <Entity> fishes = m_Group.ToEntityArray(Allocator.TempJob);
+        if (!controller) {
+            controller = FishAgentCreator.Instance;
+        }
 
-            //main for each for all predators
-            Entities.WithAll<PredatorSTPropertiesComponent>()
-                .WithoutBurst()
-                .WithReadOnly(positions)
-                .WithNativeDisableContainerSafetyRestriction(positions)
-                .ForEach((Entity selectedEntity, ref Translation predatorTranslation, 
-                          ref PredatorSTPropertiesComponent predator) => {
-                     float3 predatorPosition = new float3(predatorTranslation.Value);
+        //Query to get all fish components
+        m_Group = GetEntityQuery(ComponentType.ReadOnly<FishPropertiesComponent>());
+        NativeArray<FishPropertiesComponent> positions = m_Group.ToComponentDataArray<FishPropertiesComponent>(Allocator.TempJob);
+        NativeArray<Entity> fishes = m_Group.ToEntityArray(Allocator.TempJob);
 
-                     if(!controller)
-                        controller = FishAgentCreator.Instance;
+        //main for each for all predators
+        // NOTE(miha): Added WithStructuralChanges, so we can delete Entity in this forEach!
+        Entities.WithAll<PredatorSTPropertiesComponent>()
+            .WithoutBurst()
+            .WithStructuralChanges()
+            .WithReadOnly(positions)
+            .WithNativeDisableContainerSafetyRestriction(positions)
+            .ForEach((Entity selectedEntity, ref Translation predatorTranslation, 
+                      ref PredatorSTPropertiesComponent predator) => {
+                 SimpleTacticInfo tacticInfo = default(SimpleTacticInfo);
 
-                     SimpleTacticInfo tacticInfo = default(SimpleTacticInfo);
-                     // NOTE(miha): Choose which tactit predator will use.
-                     if(controller.simpleTactic == SimpleTactic.Nearest) {
-                         tacticInfo = nearestTactic(predator, ref positions);
-                     }
-                     if(controller.simpleTactic == SimpleTactic.Center) {
-                         tacticInfo = centerTactic(predator, positions);
-                     }
-                     if(controller.simpleTactic == SimpleTactic.Peripheral) {
-                         tacticInfo = peripheralTactic(predator, positions);
-                     }
+                 // NOTE(miha): So we always have one prey that predator can
+                 // chase. Useful for not dealing with edge cases, where there
+                 // is no more prey in the world. CAN BE REMOVED!
+                 if(positions.Length == 1) {
+                    predator.confusionProbability = 1.0f;
+                 }
+
+                 // NOTE(miha): Choose predator's tactic.
+                 if(controller.simpleTactic == SimpleTactic.Nearest) {
+                     tacticInfo = nearestTactic(predator, positions);
+                 }
+                 if(controller.simpleTactic == SimpleTactic.Center) {
+                     tacticInfo = centerTactic(predator, positions);
+                 }
+                 if(controller.simpleTactic == SimpleTactic.Peripheral) {
+                     tacticInfo = peripheralTactic(predator, positions);
+                 }
+
+                 /*
+                 if(controller.predatorDebug) {
                      Debug.DrawLine(predator.position, tacticInfo.preyCenterPosition, Color.green);
-
                      Debug.DrawLine(predator.position, (Quaternion.Euler(0, 0, -30) * (Vector3)predator.speed) * 10f, Color.green);
                      Debug.DrawLine(predator.position, (Quaternion.Euler(0, 0, 30) * (Vector3)predator.speed) * 10f, Color.green);
-                     if(predator.state != State.Resting) {
-                         if(tacticInfo.distance < 5.0f) {
-                             predator.state = State.Hunting;
-                         }
-                         else {
-                             predator.state = State.Cruising;
-                         }
+                 }
+                 */
+                 
+                 if(predator.state != State.Resting) {
+                     if(tacticInfo.distance < 100.0f) {
+                         predator.state = State.Hunting;
                      }
+                     else {
+                         // TODO(miha): Cruising should implement some sort
+                         // of a wanderer behaviour, not just following the
+                         // tail of the group!
+                         predator.state = State.Cruising;
+                     }
+                 }
 
-                     if(predator.state == State.Hunting) {
+                 if(predator.state == State.Hunting) {
+                     if(controller.predatorDebug)
                          Debug.DrawLine(predator.position, positions[tacticInfo.index].position, Color.red);
 
-                         if(tacticInfo.distance < predator.catchDistance) {
-                             predator.fishToEat = tacticInfo.index;
-                             predator.remainingRest = predator.restTime;
-                             predator.state = State.Resting;
+                     if(tacticInfo.distance < predator.catchDistance) {
+
+                         // NOTE(miha): Check if the predator was confused and
+                         // prey got away. If we roll higher number than there
+                         // is for confusionProbability, we caught the prey
+                         // (increment caugh counter and delete prey entity).
+                         if(rnd.NextFloat(1.0f) > predator.confusionProbability) {
+                             predator.numOfFishCaught += 1;
+                             EntityManager.DestroyEntity(fishes[tacticInfo.index]);
                          }
-
-                         predator.nearestFish = tacticInfo.index;
-                         float3 speedToFish = positions[tacticInfo.index].position - predator.position;
-                         predator.speed += (float3) Seek(predator, positions[tacticInfo.index].position);
+                         
+                         // NOTE(miha): If prey was or was not caught, predator
+                         // need some time before hunting again...
+                         predator.remainingRest = predator.restTime;
+                         predator.state = State.Resting;
                      }
 
-                     // NOTE(miha): Predators follows the group if it is
-                     // resting/cruising state.
-                     if(predator.state == State.Resting || predator.state == State.Cruising) {
-                         predator.speed += (float3)(Arrive(predator, tacticInfo.followGroup));
-                         predator.remainingRest--;
-                     }
+                     predator.targetFish = tacticInfo.index;
+                     float3 speedToFish = positions[tacticInfo.index].position - predator.position;
+                     predator.speed += (float3) Seek(predator, positions[tacticInfo.index].position);
+                 }
 
-                     if(predator.remainingRest == 0)
-                         predator.state = State.Cruising;
+                 // NOTE(miha): Predators follows the group if it is
+                 // resting/cruising state.
+                 if(predator.state == State.Resting || predator.state == State.Cruising) {
+                     // TODO(miha): Implement some sort of a wanderer behaviour!
+                     predator.speed += (float3)(Arrive(predator, tacticInfo.followGroup));
+                     predator.remainingRest--;
+                 }
 
-                }).Run();
+                 if(predator.remainingRest == 0)
+                     predator.state = State.Cruising;
 
-            //Query to get predator components
-            EntityQuery m_Group_p = GetEntityQuery(ComponentType.ReadOnly<PredatorSTPropertiesComponent>());
-            NativeArray <PredatorSTPropertiesComponent> predatorPositions = m_Group_p.ToComponentDataArray<PredatorSTPropertiesComponent>(Allocator.TempJob);
+                controller.predatorCamera.position = predatorTranslation.Value;
 
-            //go through all the predators to check if any of them has a fish to delete
-            for (int i = 0; i < predatorPositions.Length; i++) {
-                if (predatorPositions[i].fishToEat != -1) {
-                    //there is a fish we need to delete so let's find it
-                    Entities.WithAll<FishPropertiesComponent>()
-                        .WithoutBurst()
-                        .WithStructuralChanges()
-                        .ForEach((Entity selectedEntity, ref FishPropertiesComponent fish) => {
-                                 //this is the fish the predator has eaten, so let's delete it
-                                 if (fish.id == predatorPositions[i].fishToEat) {
-                                 EntityManager.DestroyEntity(selectedEntity);
-                                 }
-                                 }).Run();
-                }
-            }
+            }).Run();
 
-            predatorPositions.Dispose();
-            positions.Dispose();
-        
+        positions.Dispose();
+        fishes.Dispose();
     }
 }
