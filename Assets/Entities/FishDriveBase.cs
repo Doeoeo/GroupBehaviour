@@ -111,7 +111,7 @@ public class FishDriveBase : SystemBase {
                 for (int i = 0; i < predatorPositions.Length; i++) { float blindAngle = Vector3.Angle(fish.speed, fish.position - predatorPositions[i].position);
                     float comparedDistance = math.distance(fishPosition, predatorPositions[i].position);
                     //find predators that are closer than 
-                    if (comparedDistance < escapeRadius && (blindAngle < 165 || blindAngle > 195)) {
+                    if (comparedDistance < escapeRadius && (blindAngle < 165)) {
                         escapeCount++;
                         Vector3 vecToPredator = predatorPositions[i].position - fish.position;
                         escapeDrive += -1 * vecToPredator  * (1 - (float3)vecToPredator.magnitude / escapeRadius);
