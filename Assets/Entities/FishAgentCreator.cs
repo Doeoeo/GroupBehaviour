@@ -19,7 +19,6 @@ using Unity.Mathematics;
  */
 
 // TODO(miha): Create few helper functions - to create fishes, predators, ...
-// TODO(miha): Create serilizers for weights and radii
 // TODO(miha): Maybe predator goes to the -1 * followGroup after catching fish.
 
 public class FishAgentCreator : MonoBehaviour{
@@ -46,7 +45,7 @@ public class FishAgentCreator : MonoBehaviour{
     [SerializeField] public float cohesionRadius;
     [SerializeField] public float escapeWeight;
     [SerializeField] public float escapeRadius;
-    [SerializeField] public float borderRadius;
+    [SerializeField] public float borderRadius = 100f;
     [SerializeField] public float maxAcceleration;
     [SerializeField] public float cruisingVelocity;
     [SerializeField] public float maxVelocity;
@@ -55,12 +54,16 @@ public class FishAgentCreator : MonoBehaviour{
 
     public static FishAgentCreator Instance;
 
-    // Start is called before the first frame update
-    private void Start() {
-        if (!isActive) return;
+    public void Awake() {
         Instance = this;
+    }
 
-        predatorCamera = gameObject.transform.Find("PredatorPosition");
+    // Start is called before the first frame update
+    public void Start() {
+        if (!isActive) return;
+
+        if(isActive)
+            predatorCamera = gameObject.transform.Find("PredatorPosition");
 
         EntityManager entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 
@@ -113,10 +116,10 @@ public class FishAgentCreator : MonoBehaviour{
                 eD = new float3(0, 0, 0),
                 bD = new float3(0, 0, 0),
                 sW = 1,
-                aW = this.alignmentWeight,
-                cW = this.cohesionWeight,
-                eW = this.escapeWeight,
-                mA = this.maxAcceleration,
+                aW = 100,
+                cW = 100,
+                eW = 100,
+                mA = 100,
                 len = bl,
                 direction = new float3(0, 0, 0),
                 position = new float3(pos),
@@ -175,7 +178,7 @@ public class FishAgentCreator : MonoBehaviour{
                 fishToEat = -1,
                 centerFish = -1,
                 mostIsolated = -1,
-                restTime = 30,
+                restTime = 100,
                 remainingRest = 0,
                 direction = new float3(0, 0, 0),
                 position = new float3(pos),
@@ -203,12 +206,4 @@ public class FishAgentCreator : MonoBehaviour{
         fishArray.Dispose();
         predatorArray.Dispose();
     }
-
-    void Update() {
-        // TODO(miha): Dynamicly update weights values. We can update them in
-        // some SystemBase.
-        Debug.Log("Position: " + predatorCamera.position);
-
-    }
-
 }

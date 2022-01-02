@@ -42,15 +42,26 @@ public class FishVelocityBase : SystemBase {
                 // The ange ensures that the agent doesn't spin in circles
                 float distance = ((Vector3)position.Value).magnitude;
 
-                fishProperties.sW = controller.seperationWeight;
-                fishProperties.aW = controller.alignmentWeight;
-                fishProperties.cW = controller.cohesionWeight;
-                fishProperties.eW = controller.escapeWeight;
-                fishProperties.mA = controller.maxAcceleration;
-                fishProperties.vM = controller.maxVelocity * fishProperties.len;
-                fishProperties.vC = controller.cruisingVelocity * fishProperties.len;
+                // TODO(miha): If simulation is active use predefined values?
+                if(controller.isActive) {
+                    fishProperties.sW = controller.seperationWeight;
+                    fishProperties.aW = controller.alignmentWeight;
+                    fishProperties.cW = controller.cohesionWeight;
+                    fishProperties.eW = controller.escapeWeight;
+                    fishProperties.mA = controller.maxAcceleration;
+                    fishProperties.vM = controller.maxVelocity * fishProperties.len;
+                    fishProperties.vC = controller.cruisingVelocity * fishProperties.len;
+                }
 
-                float v = controller.borderRadius;
+                float v;
+                if(controller.isActive) {
+                    v = controller.borderRadius;
+                }
+                else {
+                    v = 4; // TODO(miha): Is this okay?
+                }
+                
+
                 if (distance > v) {
                     // Vector3.forward shoud change to something else for 3D :)
                     fishProperties.bD = Vector3.Cross(fishProperties.speed, Vector3.forward).normalized;

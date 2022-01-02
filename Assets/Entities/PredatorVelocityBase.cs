@@ -273,15 +273,17 @@ public class PredatorSTVelocityBase : SystemBase {
             preyCenterSpeed += positions[i].speed;
         }
 
+        preyCenterPosition /= positions.Length;
+        preyCenterSpeed /= positions.Length;
+        float3 followGroup = preyCenterPosition + (preyCenterSpeed * -6.0f);
+
         if(minIndex != 0) {
             Debug.DrawLine(predator.position, positions[minIndex].position);
+            Debug.DrawLine(preyCenterPosition, followGroup, Color.red);
             // Debug.DrawLine(new float3(0f, 0f, 0f) , predator.speed, Color.red);
             // Debug.DrawLine(new float3(0f, 0f, 0f) , positions[maxIndex].speed, Color.green);
         }
 
-        preyCenterPosition /= positions.Length;
-        preyCenterSpeed /= positions.Length;
-        float3 followGroup = preyCenterPosition + (preyCenterSpeed * -7.0f);
 
         result.preyCenterPosition = preyCenterPosition;
         result.preyCenterSpeed = preyCenterSpeed;
@@ -487,15 +489,25 @@ public class PredatorSTVelocityBase : SystemBase {
                  // NOTE(miha): Predators follows the group if it is
                  // resting/cruising state.
                  if(predator.state == State.Resting || predator.state == State.Cruising) {
-                     // TODO(miha): Implement some sort of a wanderer behaviour!
-                     predator.speed += (float3)(Arrive(predator, tacticInfo.followGroup));
+                     // TODO(miha): Maybe implement some sort of diffrent rest
+                     // tactic for the first few cycles of the rest time?
+                     if(predator.remainingRest > (predator.restTime - 10)) {
+                         predator.speed += (float3)(Arrive(predator, tacticInfo.followGroup));
+                     }
+                     else {
+                         // TODO(miha): Implement some sort of a wanderer behaviour!
+                         predator.speed += (float3)(Arrive(predator, tacticInfo.followGroup));
+                     }
+
                      predator.remainingRest--;
                  }
+
 
                  if(predator.remainingRest == 0)
                      predator.state = State.Cruising;
 
-                controller.predatorCamera.position = predatorTranslation.Value;
+                if(controller.isActive)
+                    controller.predatorCamera.position = predatorTranslation.Value;
 
             }).Run();
 
