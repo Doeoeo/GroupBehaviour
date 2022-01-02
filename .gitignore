@@ -50,3 +50,4 @@ Logs/
 .vscode
 *.sln
 *.csproj
+UserSettings/

@@ -254,8 +254,10 @@ public class SimulationController : MonoBehaviour {
             fishToEat = StaticPredatorData.getNextInt(),
             centerFish = StaticPredatorData.getNextInt(),
             mostIsolated = StaticPredatorData.getNextInt(),
+            closestGroupRadius = StaticPredatorData.getNextInt(),
 
             lockOnDistance = StaticPredatorData.getNextEvolve(),
+            lockOnRadius = StaticPredatorData.getNextEvolve(),
             numOfFishCaught = StaticPredatorData.getNumOfFishCaught(),
         };
     }

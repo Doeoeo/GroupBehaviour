@@ -35,7 +35,7 @@ public static class StaticFishData {
         5,                                                                                          // Separation weight
         0.3f,                                                                                       // Alignment weight     
         1,                                                                                          // Cohesion weight
-        0.01f,                                                                                      // Escape weight
+        5f,                                                                                         // Escape weight
         0,                                                                                          // Border weight
         0,                                                                                          // Max acceleration
     };
