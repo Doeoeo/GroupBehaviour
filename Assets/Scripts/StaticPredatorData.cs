@@ -29,7 +29,8 @@ public static class StaticPredatorData {
         );
 
     private static float[] toEvolve = {
-        1.5f
+        5f,
+        10f
     };
 
     private static float[] floatData = {
@@ -47,11 +48,12 @@ public static class StaticPredatorData {
     private static int[] intData = {
         -1,                                                                                         // Closest fish
         -2,                                                                                         // Status
-        400,                                                                                        // Rest time
-        400,                                                                                        // Remaining rest
+        50,                                                                                        // Rest time
+        50,                                                                                        // Remaining rest
         -1,                                                                                         // Fish to eat
         -1,                                                                                         // Center fish
-        -1                                                                                          // Most isolated  
+        -1,                                                                                         // Most isolated
+        15                                                                                          // Closest Group Radius
     };
 
 

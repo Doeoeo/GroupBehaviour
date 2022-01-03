@@ -166,6 +166,10 @@ public class FishAgentCreator : MonoBehaviour{
                 direction = new float3(0, 0, 0),
                 position = new float3(pos),
                 speed = new float3(UnityEngine.Random.Range(-3f, 3f), UnityEngine.Random.Range(-3f, 3f), 0),
+                numOfFishCaught = 0,
+                closestGroupRadius = 15f,
+                lockOnDistance = 5f,
+                lockOnRadius = 100f,
             });
             */
 

@@ -9,6 +9,9 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using System;
 using System.Threading;
+//using System.Diagnostics;
+
+
 //using System.Runtime.Remoting.Metadata.W3cXsd2001;
 [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 public class PredatorVelocityBase : SystemBase {
@@ -38,16 +41,33 @@ public class PredatorVelocityBase : SystemBase {
             //status -2 means the predator needs to find group center
             float leastPeripheral = positions[0].peripherality;
             if (predator.status == -2) {
+
+                //find the closest fish first
+                float3 closestFishPos = positions[0].position;
+                float closestFishDist = math.distance(predatorPosition, positions[0].position);
+                
+                for (int i = 1; i < positions.Length; i++) {
+                    float currentDist = math.distance(predatorPosition, positions[i].position);
+                    //we found a closer fish
+                    if(currentDist < closestFishDist) {
+                        closestFishPos = positions[i].position;
+                        closestFishDist = currentDist;
+                    }
+                }
+                //Debug.Log("Found closest fish!");
+
                 //reset the group center
                 predator.centerFish = positions[0].id;
                 for (int i = 1; i < positions.Length; i++) {
-                    //compare peripherality to leastPeripheral and find the least peripheral
-                    if(leastPeripheral > positions[i]. peripherality) {
-                        leastPeripheral = positions[i]. peripherality;
+                    //compare peripherality to leastPeripheral and find the least peripheral within closest group of closestfish
+                    if(leastPeripheral > positions[i].peripherality && math.distance(closestFishPos, positions[i].position) < predator.closestGroupRadius) {
+                        leastPeripheral = positions[i].peripherality;
                         //predator.centerFish is id of the fish that has the lowest peripherality value
                         predator.centerFish = positions[i].id;
                     }
                 }
+                //Debug.Log("Found least peripheral fish in group.");
+                //Debug.Log("Hunting central fish.");
                 predator.status = -1;
             //status -1 means the predator needs to move to the center of the group
             //this stops when the predator is less than lock on distance away from the centre and goes to status 0
@@ -64,7 +84,7 @@ public class PredatorVelocityBase : SystemBase {
 
                 //if the fish was not found we need to select another
                 if(targetFishArrayIndex == -1) {
-                    
+                    //Debug.Log("Fish not found :(, finding another target.");
                     predator.status = -2;
                 //else we have the fish and swim towards it
                 } else {
@@ -74,6 +94,8 @@ public class PredatorVelocityBase : SystemBase {
 
                     //if the fish is less than lock on distance away from the fish, we go to find the most isolated fish
                     if (math.distance(predatorPosition, positions[targetFishArrayIndex].position) < predator.lockOnDistance) {
+                        //Debug.Log("predator.lockOnDistance: " + predator.lockOnDistance);
+                        //Debug.Log("Within lockon distance ... finding most peripheral fish in lockon radius ...");
                         //we stop hunting the center fish and move to the status 0
                         predator.status = 0;
                     }
@@ -81,20 +103,23 @@ public class PredatorVelocityBase : SystemBase {
 
             //status = 0 means the predator is finding a new target
             } else if (predator.status == 0) {
-                
+                //Debug.Log("predator.lockOnRadius: " + predator.lockOnRadius);
                 float biggestPeripherality = 0;
-                int j = -1;
                 for(int i = 0; i < positions.Length; i++) {
-                    //finding the most peripheral fish that also has a speed angle less than 90 degrees diffrent from predator
-                    if (positions[i].peripherality > biggestPeripherality && Vector3.Angle(predator.speed, positions[i].peripheralityVector) < 90) {
+                    float distToPredator = math.distance(predatorPosition, positions[i].position);
+                    //Debug.Log("distToPredator: " + distToPredator);
+                    float angleDifference = Vector3.Angle(predator.speed, positions[i].peripheralityVector);
+                    //Debug.Log("angleDifference: " + angleDifference);
+                    //finding the most peripheral fish that also has a speed angle less than 90 degrees diffrent from predator and is less than lockOnRadius away from predator
+                    if (positions[i].peripherality > biggestPeripherality && angleDifference < 90 && distToPredator < predator.lockOnRadius) {
                         biggestPeripherality = positions[i].peripherality;
                         //updating the id of most isolated fish for the predator
                         predator.mostIsolated = positions[i].id;
-                        j = i;
                     } 
                 }
 
                 predator.status = 1;
+                //Debug.Log("Hunting the most peripheral fish.");
 
             //status 1 means that hunting the target
             } else if (predator.status == 1) {
@@ -112,7 +137,7 @@ public class PredatorVelocityBase : SystemBase {
                 //if the fish was not found we need to select another
                 if(targetFishArrayIndex == -1) {
                     predator.status = -2;
-
+                    //Debug.Log("Fish not found #2 :(, finding another target.");
                 //else we have the fish and we eat it if we are close
                 } else {
                     float3 speedToFish = positions[targetFishArrayIndex].position - predatorPosition;
@@ -121,7 +146,7 @@ public class PredatorVelocityBase : SystemBase {
 
                     //if the fish is less than 1 bl away from the fish, we say the prey ate the fish
                     if (math.distance(predatorPosition, positions[targetFishArrayIndex].position) < 0.1f) {
-                        // Debug.Log("I caught the fish!");
+                        //Debug.Log("I caught the fish!");
                         predator.numOfFishCaught++;
                         //setup the fish with the id to be eaten
                         predator.fishToEat = predator.mostIsolated;

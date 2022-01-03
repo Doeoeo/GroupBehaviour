@@ -22,10 +22,12 @@ public struct PredatorPropertiesComponent : IComponentData
     public int remainingRest;                                     //Remaining frames for eating after catching a fish
     public int fishToEat;                                         //Fish soft deletion
     public int centerFish;                                        //Central fish for hunting
-    public int mostIsolated;
+    public int mostIsolated;                                      //least peripheral fish in lockOnRadius
     public float numOfFishCaught;
 
+    public float closestGroupRadius;                              //Possible to evolve
     public float lockOnDistance;                                  //Value to evolve
+    public float lockOnRadius;                                    //Value to evolve
 }
 
 public struct PredatorSTPropertiesComponent : IComponentData
