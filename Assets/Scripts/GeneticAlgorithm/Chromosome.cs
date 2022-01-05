@@ -17,12 +17,28 @@ public class Chromosome
     public float disperseTacticRandom = 20.0f;
     public float simpleTacticRandom = 1.0f;
 
-    public Chromosome(float mutationRate, int genesLength, bool simpleTactic) {
+    int simulationRepetitionsDone;
+    public int SimulationRepetitionsDone {get => simulationRepetitionsDone; set => simulationRepetitionsDone = value;}
 
+    int simulationRepetitionsAll;
+    public int SimulationRepetitionsAll {get => simulationRepetitionsAll; set => simulationRepetitionsAll = value;}
+
+    
+    bool simulationsFinished;
+    public bool AreSimulationsFinished { get => simulationsFinished; }
+
+
+    public Chromosome(float mutationRate, int genesLength, bool simpleTactic, int simulationRepetitionsAll) {
+
+        this.simulationRepetitionsAll = simulationRepetitionsAll;
         this.mutationRate = mutationRate;
         this.genesLength = genesLength;
         this.genes = new float[genesLength];
         this.simpleTactic = simpleTactic;
+
+        this.simulationRepetitionsDone = 0;
+        this.fitnessScore = 0;
+        this.simulationsFinished = false;
 
         this.GenerateNewGenes();
     }
@@ -97,7 +113,7 @@ public class Chromosome
            
         }
         
-        Chromosome childChromosome = new Chromosome(this.mutationRate, this.genesLength, this.simpleTactic);
+        Chromosome childChromosome = new Chromosome(this.mutationRate, this.genesLength, this.simpleTactic, this.simulationRepetitionsAll);
         childChromosome.Genes = childGenes;
         return childChromosome;
     }
@@ -110,6 +126,16 @@ public class Chromosome
         }
 
         return toString;
+    }
+
+    public void nextSimulation() {
+        if(this.simulationRepetitionsDone==(this.simulationRepetitionsAll - 1)) {
+            this.simulationsFinished = true;
+            this.simulationRepetitionsDone++;
+        }
+        else{
+            this.simulationRepetitionsDone++;
+        }        
     }
 
 }

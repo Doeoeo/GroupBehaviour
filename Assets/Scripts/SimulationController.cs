@@ -84,9 +84,11 @@ public class SimulationController : MonoBehaviour {
         int genesLength = 2;
         int maxGenerations = 5;
         float thresholdScore = 40.0f;
-
+        int chromosomeSimulationRepetitions = 10;
         bool isSimpleTactic = (predatorType == PredatorType.SimpleTactic);
-        geneticAlgorithm = new GeneticAlgorithm(populationSize, mutationRate, genesLength, maxGenerations, thresholdScore, isSimpleTactic);
+
+        geneticAlgorithm = new GeneticAlgorithm(populationSize, mutationRate, genesLength, maxGenerations, thresholdScore, isSimpleTactic, chromosomeSimulationRepetitions);
+
         currentChromosome = geneticAlgorithm.GetNextChromosome();
 
     }
@@ -150,7 +152,7 @@ public class SimulationController : MonoBehaviour {
                 // }            
                 // Debug.Log("!! best chromosome --->" + bestScore );
 
-                Debug.Log("!! best chromosome --->" + bestChromosome.ToString() + ", score: " + bestChromosome.FitnessScore);
+                Debug.Log("!! best chromosome --->" +  bestChromosome.ToString() + ", score: " + bestChromosome.FitnessScore);
 
 
                 if(!geneticAlgorithm.IsFinished) {
@@ -163,8 +165,8 @@ public class SimulationController : MonoBehaviour {
                 }
                 else {
 
+
                     Debug.Log("!! Final best chromosome --->" + bestChromosome.ToString() + ", score: " + bestChromosome.FitnessScore);
-          
                     return;                 
                 }
 

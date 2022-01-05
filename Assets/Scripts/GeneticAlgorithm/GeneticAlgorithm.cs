@@ -19,6 +19,7 @@ public class GeneticAlgorithm {
 
     int generationsNumber;
     float fitnessSum;
+    int chromosomeSimulationRepetitions;
 
     float bestFitnessScore;
     public float BestFitnessScore {get => bestFitnessScore; }
@@ -29,11 +30,12 @@ public class GeneticAlgorithm {
     Chromosome[] populationChromosomes;
     int currentChromosomeIndex;
 
-    public GeneticAlgorithm(int populationSize, float mutationRate, int genesLength,  int maxGenerations, float thresholdScore, bool simpleTactic) {
+    public GeneticAlgorithm(int populationSize, float mutationRate, int genesLength,  int maxGenerations, float thresholdScore, bool simpleTactic, int chromosomeSimulationRepetitions) {
 
         this.populationSize = populationSize;
         this.mutationRate = mutationRate;
         this.genesLength = genesLength;
+        this.chromosomeSimulationRepetitions = chromosomeSimulationRepetitions;
 
         this.maxGenerations = maxGenerations;
         this.thresholdScore = thresholdScore;
@@ -50,7 +52,7 @@ public class GeneticAlgorithm {
 
 
         for(int i = 0; i<populationSize; i++) {
-            this.populationChromosomes[i] = new Chromosome(this.mutationRate, this.genesLength, simpleTactic);
+            this.populationChromosomes[i] = new Chromosome(this.mutationRate, this.genesLength, simpleTactic, this.chromosomeSimulationRepetitions);
         }
 
         generationsNumber++;
