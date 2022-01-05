@@ -79,7 +79,7 @@ public class SimulationController : MonoBehaviour {
 
 
 
-        int populationSize = 100;
+        int populationSize = 10;
         float mutationRate = 0.01f;
         int genesLength = 2;
         int maxGenerations = 5;
@@ -127,7 +127,7 @@ public class SimulationController : MonoBehaviour {
         //     fishCaughtScore += currentChromosome.Genes[i];
         // }
         Debug.Log("current chromosome score: " + fishCaughtScore);
-        Debug.Log("random not so random?: " + UnityEngine.Random.Range(0f, 10000f));
+        //Debug.Log("random not so random?: " + UnityEngine.Random.Range(0f, 10000f));
      
 
         // float fitnessScore = StaticPredatorData.getNumOfFishCaught();
@@ -150,7 +150,7 @@ public class SimulationController : MonoBehaviour {
                 // }            
                 // Debug.Log("!! best chromosome --->" + bestScore );
 
-                Debug.Log("!! best chromosome --->" + bestChromosome.Genes[0] );
+                Debug.Log("!! best chromosome --->" + bestChromosome.ToString() + ", score: " + bestChromosome.FitnessScore);
 
 
                 if(!geneticAlgorithm.IsFinished) {
@@ -163,14 +163,8 @@ public class SimulationController : MonoBehaviour {
                 }
                 else {
 
-                    // bestScore = 0.0f;
-                    // for(int i = 0; i<bestChromosome.Genes.Length; i++) {
-                    //     bestScore += bestChromosome.Genes[i];
-                    // }            
-                    // Debug.Log("!! Final best chromosome  --->" + bestScore );   
-
-                    Debug.Log("!! Final best chromosome --->" + bestChromosome.Genes[0] );
-                    Debug.Log("!! Final best chromosome --->" + bestChromosome.Genes[1] );
+                    Debug.Log("!! Final best chromosome --->" + bestChromosome.ToString() + ", score: " + bestChromosome.FitnessScore);
+          
                     return;                 
                 }
 
@@ -182,7 +176,7 @@ public class SimulationController : MonoBehaviour {
             // TODO(miha): Here we need to return same result for the simulation of the generatrion (eg. position of the fish)
             // Create fish
             fishEntityArray = generateEntity(StaticFishData.getArchetype(), agentNumberParam, constructFishComponent, fishMaterial, fishMesh);
-            Debug.Log("Array len: " + fishEntityArray.Length);
+            // Debug.Log("Array len: " + fishEntityArray.Length);
             disposeOfEntityArray(fishEntityArray);
             // Debug.Log("Made Fish");
 
