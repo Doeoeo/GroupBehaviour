@@ -29,7 +29,7 @@ public class GeneticAlgorithm {
     Chromosome[] populationChromosomes;
     int currentChromosomeIndex;
 
-    public GeneticAlgorithm(int populationSize, float mutationRate, int genesLength,  int maxGenerations, float thresholdScore) {
+    public GeneticAlgorithm(int populationSize, float mutationRate, int genesLength,  int maxGenerations, float thresholdScore, bool simpleTactic) {
 
         this.populationSize = populationSize;
         this.mutationRate = mutationRate;
@@ -50,7 +50,7 @@ public class GeneticAlgorithm {
 
 
         for(int i = 0; i<populationSize; i++) {
-            this.populationChromosomes[i] = new Chromosome(this.mutationRate, this.genesLength);
+            this.populationChromosomes[i] = new Chromosome(this.mutationRate, this.genesLength, simpleTactic);
         }
 
         generationsNumber++;

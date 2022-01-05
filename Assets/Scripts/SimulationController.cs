@@ -85,7 +85,8 @@ public class SimulationController : MonoBehaviour {
         int maxGenerations = 5;
         float thresholdScore = 40.0f;
 
-        geneticAlgorithm = new GeneticAlgorithm(populationSize, mutationRate, genesLength, maxGenerations, thresholdScore);
+        bool isSimpleTactic = (predatorType == PredatorType.SimpleTactic);
+        geneticAlgorithm = new GeneticAlgorithm(populationSize, mutationRate, genesLength, maxGenerations, thresholdScore, isSimpleTactic);
         currentChromosome = geneticAlgorithm.GetNextChromosome();
 
     }

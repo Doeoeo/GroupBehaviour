@@ -159,14 +159,14 @@ public class PredatorVelocityBase : SystemBase {
                         float pSuccess = 1/fishInConfusionZone; 
 
                         if(UnityEngine.Random.Range(0f,1f) < pSuccess) {
-                            Debug.Log("I caught the fish!");
+                            //Debug.Log("I caught the fish!");
                             predator.numOfFishCaught++;
                             //setup the fish with the id to be eaten
                             predator.fishToEat = predator.mostIsolated;
                             //maybe we need a critical section
                             //Debug.Log("git shrekt fish LMAO :CryingLaughingEmoji:");
                         } else {
-                            Debug.Log("Confusement?!?!");
+                            //Debug.Log("Confusement?!?!");
                         }
                         
                         predator.status = 2;

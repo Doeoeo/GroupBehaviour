@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class Chromosome
 {
-    public float max = 1.0f;
-
     float[] genes;
     public float[] Genes {get => genes; set => genes = value;}
 
@@ -15,11 +13,16 @@ public class Chromosome
     float fitnessScore;
     public float FitnessScore {get => fitnessScore; set => fitnessScore = value;}
 
-    public Chromosome(float mutationRate, int genesLength) {
+    public bool simpleTactic;
+    public float disperseTacticRandom = 20.0f;
+    public float simpleTacticRandom = 1.0f;
+
+    public Chromosome(float mutationRate, int genesLength, bool simpleTactic) {
 
         this.mutationRate = mutationRate;
         this.genesLength = genesLength;
         this.genes = new float[genesLength];
+        this.simpleTactic = simpleTactic;
 
         this.GenerateNewGenes();
     }
@@ -42,21 +45,21 @@ public class Chromosome
     // }
 
     public void GenerateNewGenes(){
+        if(this.simpleTactic) {
+            float rng1 = GenerateSingleGeneFloat(simpleTacticRandom);
+            float rng2 = GenerateSingleGeneFloat(simpleTacticRandom);
 
-        // TODO(miha): If it is simple tactic generate two random values between 0 and 1.
-        //for(int i=0; i<this.genesLength; i++) {
-        //    this.genes[i] = this.GenerateSingleGeneFloat(max);
-        //}
-        
-        float rng1 = GenerateSingleGeneFloat(1.0f);
-        float rng2 = GenerateSingleGeneFloat(1.0f);
-
-        if(rng1 < rng2) {
-            this.genes[0] = rng1;
-            this.genes[1] = rng2;
+            if(rng1 < rng2) {
+                this.genes[0] = rng1;
+                this.genes[1] = rng2;
+            } else {
+                this.genes[0] = rng2;
+                this.genes[1] = rng1;
+            }
         } else {
-            this.genes[0] = rng2;
-            this.genes[1] = rng1;
+            for(int i=0; i<this.genesLength; i++) {
+                this.genes[i] = this.GenerateSingleGeneFloat(disperseTacticRandom);
+            }
         }
 
     }
@@ -72,7 +75,11 @@ public class Chromosome
             float mutationProbability = Random.Range(0.0f, 1.0f);
 
             if(mutationRate>mutationProbability){
-                this.genes[i] = this.GenerateSingleGeneFloat(max);
+                if(this.simpleTactic) {
+                    this.genes[i] = this.GenerateSingleGeneFloat(simpleTacticRandom);
+                } else {
+                    this.genes[i] = this.GenerateSingleGeneFloat(disperseTacticRandom);
+                }
             }
 
         }
@@ -90,7 +97,7 @@ public class Chromosome
            
         }
         
-        Chromosome childChromosome = new Chromosome(this.mutationRate, this.genesLength);
+        Chromosome childChromosome = new Chromosome(this.mutationRate, this.genesLength, this.simpleTactic);
         childChromosome.Genes = childGenes;
         return childChromosome;
     }
