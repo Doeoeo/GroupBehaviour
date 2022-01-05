@@ -59,13 +59,15 @@ public class FishDriveBase : SystemBase {
                 float alignmentRadius = controller.alignmentRadius * fish.len;
                 float cohesionRadius = controller.cohesionRadius * fish.len;
                 float escapeRadius = controller.escapeRadius * fish.len;
+                float confusionRadius = controller.confusionRadius * fish.len;
 
                 // Data for drive calculations
                 float3 seperationDrive = new float3(0, 0, 0), alignmentDrive = new float3(0, 0, 0), 
                     cohesionDrive = new float3(0, 0, 0), borderDrive = new float3(0, 0, 0), 
                     escapeDrive = new float3(0, 0, 0);
 
-                int seperationCount = 0, alignmentCount = 0, cohesionCount = 0, escapeCount = 0;
+                int seperationCount = 0, alignmentCount = 0, cohesionCount = 0, 
+                    escapeCount = 0;
 
                 float3 peripheralityVector = new float3(0, 0, 0);
                 int peripheralityCount = 0;
@@ -97,18 +99,18 @@ public class FishDriveBase : SystemBase {
                         else if (comparedDistance < cohesionRadius) {
                             cohesionCount++;
                             cohesionDrive += positions[i].position - fish.position;
-                            
-                        }
-                        // NOTE(Miha): This is calculation of peripherality
-                        // for mixture of simple tactics as in the paper.
-                        peripheralityVector += (positions[i].position - fish.position) / comparedDistance;
-                        peripheralityCount++;
 
+                            // NOTE(Miha): This is calculation of peripherality
+                            // for mixture of simple tactics as in the paper.
+                            peripheralityVector += (positions[i].position - fish.position) / comparedDistance;
+                            peripheralityCount++;
+                        }
                     }
                 }
 
                 //chech distance to all predators
-                for (int i = 0; i < predatorPositions.Length; i++) { float blindAngle = Vector3.Angle(fish.speed, fish.position - predatorPositions[i].position);
+                for (int i = 0; i < predatorPositions.Length; i++) { 
+                    float blindAngle = Vector3.Angle(fish.speed, fish.position - predatorPositions[i].position);
                     float comparedDistance = math.distance(fishPosition, predatorPositions[i].position);
                     //find predators that are closer than 
                     if (comparedDistance < escapeRadius && (blindAngle < 165)) {

@@ -21,6 +21,11 @@ using Unity.Mathematics;
 // TODO(miha): Create few helper functions - to create fishes, predators, ...
 // TODO(miha): Maybe predator goes to the -1 * followGroup after catching fish.
 
+public enum PredatorType {
+    DispersingTactic,
+    SimpleTactic
+}
+
 public class FishAgentCreator : MonoBehaviour{
 
     [SerializeField] private Mesh fishMesh;
@@ -31,9 +36,11 @@ public class FishAgentCreator : MonoBehaviour{
     [SerializeField] private Material predatorMaterial;
     [SerializeField] private int predatorNumber;
 
+    [SerializeField] public PredatorType predatorType;
     [SerializeField] public bool isActive;
 
     [SerializeField] public SimpleTactic simpleTactic;
+    [SerializeField] public bool predatorLockOnTarget;
     [SerializeField] public bool fishDebug;
     [SerializeField] public bool predatorDebug;
 
@@ -46,6 +53,7 @@ public class FishAgentCreator : MonoBehaviour{
     [SerializeField] public float escapeWeight;
     [SerializeField] public float escapeRadius;
     [SerializeField] public float borderRadius = 100f;
+    [SerializeField] public float confusionRadius;
     [SerializeField] public float maxAcceleration;
     [SerializeField] public float cruisingVelocity;
     [SerializeField] public float maxVelocity;
@@ -77,15 +85,28 @@ public class FishAgentCreator : MonoBehaviour{
             typeof(Rotation)
         );
 
-        EntityArchetype predatorArchetype = entityManager.CreateArchetype(
-            typeof(PredatorSTPropertiesComponent),
-            typeof(Translation),
-            typeof(RenderMesh),
-            typeof(LocalToWorld),
-            typeof(RenderBounds),
-            typeof(Scale),
-            typeof(Rotation)
-        );
+        EntityArchetype predatorArchetype;
+        if(predatorType == PredatorType.SimpleTactic) {
+            predatorArchetype = entityManager.CreateArchetype(
+                typeof(PredatorSTPropertiesComponent),
+                typeof(Translation),
+                typeof(RenderMesh),
+                typeof(LocalToWorld),
+                typeof(RenderBounds),
+                typeof(Scale),
+                typeof(Rotation)
+            );
+        } else {
+            predatorArchetype = entityManager.CreateArchetype(
+                typeof(PredatorPropertiesComponent),
+                typeof(Translation),
+                typeof(RenderMesh),
+                typeof(LocalToWorld),
+                typeof(RenderBounds),
+                typeof(Scale),
+                typeof(Rotation)
+            );
+        }
 
         NativeArray<Entity> fishArray = new NativeArray<Entity>(fishNumber, Allocator.Temp);
         NativeArray<Entity> predatorArray = new NativeArray<Entity>(predatorNumber, Allocator.Temp);
@@ -173,29 +194,57 @@ public class FishAgentCreator : MonoBehaviour{
             });
             */
 
-            entityManager.SetComponentData(predator, new PredatorSTPropertiesComponent {
-                vM = 6 * bl,
-                vC = 6 * bl,
-                mA = 0,
-                len = bl * 6,
-                catchDistance = bl,
-                fishToEat = -1,
-                centerFish = -1,
-                mostIsolated = -1,
-                restTime = 100,
-                remainingRest = 0,
-                direction = new float3(0, 0, 0),
-                position = new float3(pos),
-                speed = new float3(0.1f, 0.0f, 0.0f), //new float3(UnityEngine.Random.Range(-3f, 3f), UnityEngine.Random.Range(-3f, 3f), 0),
-                tactic = SimpleTactic.Nearest,
-                state = State.Cruising,
-                confusionProbability = 0.25f,
-                numOfFishCaught = 0,
-            });
+            if(predatorType == PredatorType.SimpleTactic) {
+                entityManager.SetComponentData(predator, new PredatorSTPropertiesComponent {
+                    vM = 6 * bl,
+                    vC = 6 * bl,
+                    mA = 0,
+                    len = bl * 6,
+                    catchDistance = bl,
+                    // fishToEat = -1,
+                    // centerFish = -1,
+                    // mostIsolated = -1,
+                    restTime = 100,
+                    remainingRest = 0,
+                    direction = new float3(0, 0, 0),
+                    position = new float3(pos),
+                    speed = new float3(0.1f, 0.0f, 0.0f), //new float3(UnityEngine.Random.Range(-3f, 3f), UnityEngine.Random.Range(-3f, 3f), 0),
+                    tactic = SimpleTactic.Nearest,
+                    state = State.Cruising,
+                    confusionProbability = 0.25f,
+                    numOfFishCaught = 0,
+                    firstRandomTacticBarrier = 0.333f,
+                    secondRandomTacticBarrier = 0.333f,
+                    //firstSectionTactic = 1,
+                    //secondSectionTactic = 2,
+                    //thirdSectionTactic = 3,
+                });
 
-            entityManager.SetComponentData(predator, new Translation {
-                Value = new float3(pos)
-            });
+                entityManager.SetComponentData(predator, new Translation {
+                    Value = new float3(pos)
+                });
+            } else {
+                entityManager.SetComponentData(predator, new PredatorPropertiesComponent {
+                    vM = 6 * bl,
+                    vC = 3 * bl,
+                    mA = 0,
+                    len = bl * 6,
+                    status = -2,
+                    closestFish = -1,
+                    fishToEat = -1,
+                    centerFish = -1,
+                    mostIsolated = -1,
+                    restTime = 400,
+                    remainingRest = 400,
+                    direction = new float3(0, 0, 0),
+                    position = new float3(pos),
+                    speed = new float3(UnityEngine.Random.Range(-3f, 3f), UnityEngine.Random.Range(-3f, 3f), 0),
+                    numOfFishCaught = 0,
+                    closestGroupRadius = 15f,
+                    lockOnDistance = 5f,
+                    lockOnRadius = 100f,
+                });
+            }
 
             entityManager.SetSharedComponentData(predator, new RenderMesh {
                 mesh = predatorMesh,

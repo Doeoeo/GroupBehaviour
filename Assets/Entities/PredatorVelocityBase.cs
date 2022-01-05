@@ -175,6 +175,12 @@ public class PredatorVelocityBase : SystemBase {
                     predator.remainingRest = predator.restTime;
                 }
             }
+
+            // NOTE(miha): Cinemachine camera follows this empty game object,
+            // which have the same coordinates as predator.
+            if(controller.isActive)
+                controller.predatorCamera.position = predatorTranslation.Value;
+
         }).Run();
 
         //Query to get predator components
@@ -212,6 +218,7 @@ public enum State {
 }
 
 public enum SimpleTactic {
+    Random = 0,
     Nearest = 1,
     Center = 2,
     Peripheral = 3
@@ -224,8 +231,11 @@ public class PredatorSTVelocityBase : SystemBase {
 
     static uint seed = (uint) (UnityEngine.Random.value * 10000);
     static Unity.Mathematics.Random rnd = new Unity.Mathematics.Random(seed);
-    static float c = rnd.NextFloat(360f);
-    static float s = rnd.NextFloat(360f);
+
+    static public SimpleTacticInfo tacticInfo = default(SimpleTacticInfo);
+    static public bool chooseNewTarget = true;
+    static public int currentPreyIndex = 0;
+    static public SimpleTactic currentTactic = 0;
 
     static Vector3 Seek(in PredatorSTPropertiesComponent p, Vector3 target) {
         Vector3 desired = target - (Vector3)p.position;
@@ -240,13 +250,11 @@ public class PredatorSTVelocityBase : SystemBase {
         float distance = desired.magnitude;
         desired = desired.normalized;
 
-        if(distance < 1f)
-        {
+        if(distance < 1f) {
             float m = Mathf.Lerp(0, p.vM, distance);
             desired *= m;
         }
-        else
-        {
+        else {
             desired *= p.vM;
         }
 
@@ -368,6 +376,24 @@ public class PredatorSTVelocityBase : SystemBase {
         return result;
     }
 
+    public int preyInConfusionRadius(in PredatorSTPropertiesComponent predator,  NativeArray<FishPropertiesComponent> positions) {
+        int confusionCount = 0;
+
+        for(int i = 1; i < positions.Length; i++) {
+            float distance = ((Vector3)positions[i].position - (Vector3)predator.position).magnitude;
+            float blindAngle = Vector3.Angle(predator.speed, positions[i].speed);
+            blindAngle /= 10f;
+            blindAngle *= distance;
+            bool preyInSight = (blindAngle < 90f);
+
+            if(preyInSight && distance < controller.confusionRadius) {
+                confusionCount++;
+            }
+        }
+
+        return confusionCount;
+    }
+
     static SimpleTacticInfo peripheralTactic(in PredatorSTPropertiesComponent predator, NativeArray<FishPropertiesComponent> positions) {
         SimpleTacticInfo result = default(SimpleTacticInfo);
 
@@ -426,6 +452,15 @@ public class PredatorSTVelocityBase : SystemBase {
         return result;
     }
 
+    public void shuffle(int[] array) {
+         for (int i = 0; i < array.Length - 1; i++) {
+             int rndIndex = rnd.NextInt(i, array.Length);
+             int temp = array[rndIndex];
+             array[rndIndex] = array[i];
+             array[i] = temp;
+         }
+    }
+
     protected override void OnUpdate() {
         if (!controller) {
             controller = FishAgentCreator.Instance;
@@ -445,7 +480,6 @@ public class PredatorSTVelocityBase : SystemBase {
             .WithNativeDisableContainerSafetyRestriction(positions)
             .ForEach((Entity selectedEntity, ref Translation predatorTranslation, 
                       ref PredatorSTPropertiesComponent predator) => {
-                 SimpleTacticInfo tacticInfo = default(SimpleTacticInfo);
 
                  // NOTE(miha): So we always have one prey that predator can
                  // chase. Useful for not dealing with edge cases, where there
@@ -454,25 +488,102 @@ public class PredatorSTVelocityBase : SystemBase {
                     predator.confusionProbability = 1.0f;
                  }
 
-                 // NOTE(miha): Choose predator's tactic.
-                 if(controller.simpleTactic == SimpleTactic.Nearest) {
-                     tacticInfo = nearestTactic(predator, positions);
-                 }
-                 if(controller.simpleTactic == SimpleTactic.Center) {
-                     tacticInfo = centerTactic(predator, positions);
-                 }
-                 if(controller.simpleTactic == SimpleTactic.Peripheral) {
-                     tacticInfo = peripheralTactic(predator, positions);
+                 // TODO(miha): LockOnTarget not working correctly :(
+                 // NOTE(miha): Choose if predator switches targeted fish every frame or not.
+                 if(controller.predatorLockOnTarget) {
+                     // NOTE(miha): Choose predator's tactic once per attack.
+                     if(chooseNewTarget && controller.simpleTactic == SimpleTactic.Nearest) {
+                         tacticInfo = nearestTactic(predator, positions);
+                         Debug.Log("tacticinfo.index: " + tacticInfo.index);
+                         currentPreyIndex = tacticInfo.index;
+                         chooseNewTarget = false;
+                     } else {
+                         tacticInfo = nearestTactic(predator, positions);
+                     }
+
+                     if(chooseNewTarget && controller.simpleTactic == SimpleTactic.Center) {
+                         tacticInfo = centerTactic(predator, positions);
+                         Debug.Log("tacticinfo.index: " + tacticInfo.index);
+                         currentPreyIndex = tacticInfo.index;
+                         chooseNewTarget = false;
+                     } else {
+                         tacticInfo = centerTactic(predator, positions);
+                     }
+
+                     if(chooseNewTarget && controller.simpleTactic == SimpleTactic.Peripheral) {
+                         tacticInfo = peripheralTactic(predator, positions);
+                         Debug.Log("tacticinfo.index: " + tacticInfo.index);
+                         currentPreyIndex = tacticInfo.index;
+                         chooseNewTarget = false;
+                     } else {
+                         tacticInfo = peripheralTactic(predator, positions);
+                     }
+                 } else {
+                     // NOTE(miha): Choose predator's tactic every frame.
+                     if(controller.simpleTactic == SimpleTactic.Nearest) {
+                         tacticInfo = nearestTactic(predator, positions);
+                     }
+                     if(controller.simpleTactic == SimpleTactic.Center) {
+                         tacticInfo = centerTactic(predator, positions);
+                     }
+                     if(controller.simpleTactic == SimpleTactic.Peripheral) {
+                         tacticInfo = peripheralTactic(predator, positions);
+                     }
                  }
 
-                 /*
-                 if(controller.predatorDebug) {
-                     Debug.DrawLine(predator.position, tacticInfo.preyCenterPosition, Color.green);
-                     Debug.DrawLine(predator.position, (Quaternion.Euler(0, 0, -30) * (Vector3)predator.speed) * 10f, Color.green);
-                     Debug.DrawLine(predator.position, (Quaternion.Euler(0, 0, 30) * (Vector3)predator.speed) * 10f, Color.green);
+                 // CARE(miha): Random tactic changes once per attack!
+                 if(controller.simpleTactic == SimpleTactic.Random) {
+                     if(chooseNewTarget) {
+                         float rand = rnd.NextFloat(1f);
+                         chooseNewTarget = false;
+
+                         // TODO(miha): Do we calculate indicies only once per attack?
+                         // TODO(miha): Do we shuffle only at the start?
+                         int[] randIndicies = {1, 2, 3};
+                         shuffle(randIndicies);
+
+                         //Debug.Log("random tactic: " + (SimpleTactic)randIndicies[0]);
+                         // Debug.Log("shuffeled array: " + randIndicies[0] + ", " + randIndicies[1] + ", " + randIndicies[2]);
+
+                         // TODO(miha): Do we need this in second if? -> rand > firstRandomTacticBarrier && 
+                         // TODO(miha): Is it better to always have secondRandomTacticBarrier be greater than firstRandomTacticBarrier?
+                         //
+                         if(rand < predator.firstRandomTacticBarrier) {
+                             Debug.Log("random tactic: nearest");
+                             tacticInfo = nearestTactic(predator, positions);
+                             currentPreyIndex = tacticInfo.index;
+                             currentTactic = SimpleTactic.Nearest;
+                         } else if(rand < predator.secondRandomTacticBarrier) {
+                             Debug.Log("random tactic: center");
+                             tacticInfo = centerTactic(predator, positions);
+                             currentPreyIndex = tacticInfo.index;
+                             currentTactic = SimpleTactic.Center;
+                         } else {
+                             Debug.Log("random tactic: peripheral");
+                             tacticInfo = peripheralTactic(predator, positions);
+                             currentPreyIndex = tacticInfo.index;
+                             currentTactic = SimpleTactic.Peripheral;
+                         }
+                     } else {
+                         if(currentTactic == SimpleTactic.Nearest) {
+                             tacticInfo = nearestTactic(predator, positions);
+                         }
+                         if(currentTactic == SimpleTactic.Center) {
+                             tacticInfo = centerTactic(predator, positions);
+                         }
+                         if(currentTactic == SimpleTactic.Peripheral) {
+                             tacticInfo = peripheralTactic(predator, positions);
+                         }
+                     }
                  }
-                 */
-                 
+
+                 if(controller.predatorDebug) {
+                     // Debug.Log("Choosing target:" + tacticInfo.index);
+                     Debug.Log("Tactic info:" + tacticInfo);
+                     // Debug.Log("targeted prey: " + currentPreyIndex);
+                 }
+
+
                  if(predator.state != State.Resting) {
                      if(tacticInfo.distance < 100.0f) {
                          predator.state = State.Hunting;
@@ -490,12 +601,22 @@ public class PredatorSTVelocityBase : SystemBase {
                          Debug.DrawLine(predator.position, positions[tacticInfo.index].position, Color.red);
 
                      if(tacticInfo.distance < predator.catchDistance) {
-
                          // NOTE(miha): Check if the predator was confused and
                          // prey got away. If we roll higher number than there
                          // is for confusionProbability, we caught the prey
                          // (increment caugh counter and delete prey entity).
-                         if(rnd.NextFloat(1.0f) > predator.confusionProbability) {
+                         //int confusionPreyIndex;
+                         //if(controller.predatorLockOnTarget) {
+                         //    confusionPreyIndex = positions[currentPreyIndex].confusionCount;
+                         //} else {
+                         //    confusionPreyIndex = positions[tacticInfo.index].confusionCount;
+                         //}
+
+                         int confusionCount = preyInConfusionRadius(predator, positions);
+                         if(confusionCount == 0) confusionCount = 1;
+                         // Debug.Log("confusion count: " + confusionCount);
+
+                         if(rnd.NextFloat(1.0f) < (1/confusionCount)) {
                              predator.numOfFishCaught += 1;
                              EntityManager.DestroyEntity(fishes[tacticInfo.index]);
                          }
@@ -506,9 +627,13 @@ public class PredatorSTVelocityBase : SystemBase {
                          predator.state = State.Resting;
                      }
 
-                     predator.targetFish = tacticInfo.index;
-                     float3 speedToFish = positions[tacticInfo.index].position - predator.position;
-                     predator.speed += (float3) Seek(predator, positions[tacticInfo.index].position);
+                     //float3 speedToFish = positions[tacticInfo.index].position - predator.position;
+
+                     if(controller.predatorLockOnTarget) {
+                         predator.speed += (float3) Seek(predator, positions[currentPreyIndex].position);
+                     } else {
+                         predator.speed += (float3) Seek(predator, positions[tacticInfo.index].position);
+                     }
                  }
 
                  // NOTE(miha): Predators follows the group if it is
@@ -516,20 +641,28 @@ public class PredatorSTVelocityBase : SystemBase {
                  if(predator.state == State.Resting || predator.state == State.Cruising) {
                      // TODO(miha): Maybe implement some sort of diffrent rest
                      // tactic for the first few cycles of the rest time?
-                     if(predator.remainingRest > (predator.restTime - 10)) {
-                         predator.speed += (float3)(Arrive(predator, tacticInfo.followGroup));
-                     }
-                     else {
-                         // TODO(miha): Implement some sort of a wanderer behaviour!
-                         predator.speed += (float3)(Arrive(predator, tacticInfo.followGroup));
-                     }
+                     // if(predator.remainingRest > (predator.restTime - 10)) {
+                     //     predator.speed += (float3)(Arrive(predator, tacticInfo.followGroup));
+                     // }
+                     // else {
+                     //     // TODO(miha): Implement some sort of a wanderer behaviour!
+                     //     predator.speed += (float3)(Arrive(predator, tacticInfo.followGroup));
+                     // }
 
+                     predator.speed += (float3)(Arrive(predator, tacticInfo.followGroup));
                      predator.remainingRest--;
                  }
 
 
-                 if(predator.remainingRest == 0)
+                 if(predator.remainingRest == 0) {
+                     // NOTE(miha): When predator finish resting, it can choose
+                     // another target.
+                     chooseNewTarget = true;
+
+                     // TODO(miha): Fix this hacky way?
+                     predator.remainingRest = -1;
                      predator.state = State.Cruising;
+                 }
 
                 if(controller.isActive)
                     controller.predatorCamera.position = predatorTranslation.Value;

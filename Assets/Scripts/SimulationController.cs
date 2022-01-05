@@ -31,6 +31,7 @@ public class SimulationController : MonoBehaviour {
 
     [SerializeField] private int agentNumberParam;
     [SerializeField] public bool isActive;
+    [SerializeField] public PredatorType predatorType;
 
     public static int simulationFrames = 700;
     public static float timestep = 0.005f;
@@ -46,6 +47,8 @@ public class SimulationController : MonoBehaviour {
     public static GeneticAlgorithm geneticAlgorithm;
     public static Chromosome bestChromosome;
 
+    public static int randomSeed;
+
     NativeArray<Entity> fishEntityArray;
     NativeArray<Entity> predatorEntityArray;
 
@@ -56,18 +59,31 @@ public class SimulationController : MonoBehaviour {
 
         fishEntityArray = generateEntity(StaticFishData.getArchetype(), agentNumberParam, constructFishComponent, fishMaterial, fishMesh);
         disposeOfEntityArray(fishEntityArray);
-        predatorEntityArray = generateEntity(StaticPredatorData.getArchetype(), 1, constructPredatorComponent, predatorMaterial, predatorMesh);
+
+        randomSeed = (int) UnityEngine.Random.Range(0f, 10000f);
+
+        if(predatorType == PredatorType.SimpleTactic) {
+            predatorEntityArray = generateEntity(StaticPredatorSTData.getArchetype(), 1, constructPredatorSTComponent, predatorMaterial, predatorMesh);
+        } else {
+            predatorEntityArray = generateEntity(StaticPredatorData.getArchetype(), 1, constructPredatorComponent, predatorMaterial, predatorMesh);
+        }
+
+        Debug.Log("PEA: " + predatorEntityArray);
+        Debug.Log("PEA[0]: " + predatorEntityArray[0]);
 
         // for (int i = 0; i < predatorEntityArray.Length; i++) {
         //     PredatorPropertiesComponent predator = entityManager.GetComponentData<PredatorPropertiesComponent>(predatorEntityArray[i]);
         //     Debug.Log("num of fish caught of this predator: " + predator.numOfFishCaught);
         // }
+        //
 
-        int populationSize = 10;
+
+
+        int populationSize = 100;
         float mutationRate = 0.01f;
-        int genesLength = 1;
-        int maxGenerations = 10;
-        float thresholdScore = 4.0f;
+        int genesLength = 2;
+        int maxGenerations = 5;
+        float thresholdScore = 40.0f;
 
         geneticAlgorithm = new GeneticAlgorithm(populationSize, mutationRate, genesLength, maxGenerations, thresholdScore);
         currentChromosome = geneticAlgorithm.GetNextChromosome();
@@ -88,11 +104,19 @@ public class SimulationController : MonoBehaviour {
         // EntityQuery m_Group_p = GetEntityQuery(ComponentType.ReadOnly<PredatorPropertiesComponent>());
         // NativeArray <PredatorPropertiesComponent> predators = m_Group_p.ToComponentDataArray<PredatorPropertiesComponent>(Allocator.TempJob);
 
+        // NOTE(miha): reset random generators seed
+        UnityEngine.Random.InitState(randomSeed);
+
         float fishCaughtScore = 0.0f;
         for (int i = 0; i < predatorEntityArray.Length; i++) {
-            PredatorPropertiesComponent predator = entityManager.GetComponentData<PredatorPropertiesComponent>(predatorEntityArray[i]);
-            fishCaughtScore += predator.numOfFishCaught;
 
+            if(predatorType == PredatorType.SimpleTactic) {
+                PredatorSTPropertiesComponent predator = entityManager.GetComponentData<PredatorSTPropertiesComponent>(predatorEntityArray[i]);
+                fishCaughtScore += predator.numOfFishCaught;
+            } else {
+                PredatorPropertiesComponent predator = entityManager.GetComponentData<PredatorPropertiesComponent>(predatorEntityArray[i]);
+                fishCaughtScore += predator.numOfFishCaught;
+            }
         }
 
         disposeOfEntityArray(predatorEntityArray);
@@ -102,6 +126,7 @@ public class SimulationController : MonoBehaviour {
         //     fishCaughtScore += currentChromosome.Genes[i];
         // }
         Debug.Log("current chromosome score: " + fishCaughtScore);
+        Debug.Log("random not so random?: " + UnityEngine.Random.Range(0f, 10000f));
      
 
         // float fitnessScore = StaticPredatorData.getNumOfFishCaught();
@@ -128,6 +153,10 @@ public class SimulationController : MonoBehaviour {
 
 
                 if(!geneticAlgorithm.IsFinished) {
+
+                    // TODO(miha): Here we generate new position :)
+                    randomSeed = (int) UnityEngine.Random.Range(0f, 10000f);
+
                     geneticAlgorithm.CreateNextGeneration();
                     currentChromosome = geneticAlgorithm.GetNextChromosome();
                 }
@@ -140,6 +169,7 @@ public class SimulationController : MonoBehaviour {
                     // Debug.Log("!! Final best chromosome  --->" + bestScore );   
 
                     Debug.Log("!! Final best chromosome --->" + bestChromosome.Genes[0] );
+                    Debug.Log("!! Final best chromosome --->" + bestChromosome.Genes[1] );
                     return;                 
                 }
 
@@ -148,8 +178,10 @@ public class SimulationController : MonoBehaviour {
             cleanUp();
             // Debug.Log("Cleared Entities");
 
+            // TODO(miha): Here we need to return same result for the simulation of the generatrion (eg. position of the fish)
             // Create fish
             fishEntityArray = generateEntity(StaticFishData.getArchetype(), agentNumberParam, constructFishComponent, fishMaterial, fishMesh);
+            Debug.Log("Array len: " + fishEntityArray.Length);
             disposeOfEntityArray(fishEntityArray);
             // Debug.Log("Made Fish");
 
@@ -157,7 +189,13 @@ public class SimulationController : MonoBehaviour {
             StaticPredatorData.setEvolve(evolvingParameters);
 
             // Create predator
-            predatorEntityArray = generateEntity(StaticPredatorData.getArchetype(), 1, constructPredatorComponent, predatorMaterial, predatorMesh);
+
+            // TODO(miha): Here we need to return same result for the simulation of the generatrion (eg. position of the predator)
+            if(predatorType == PredatorType.SimpleTactic) {
+                predatorEntityArray = generateEntity(StaticPredatorSTData.getArchetype(), 1, constructPredatorSTComponent, predatorMaterial, predatorMesh);
+            } else {
+                predatorEntityArray = generateEntity(StaticPredatorData.getArchetype(), 1, constructPredatorComponent, predatorMaterial, predatorMesh);
+            }
 
             // Debug.Log("Made Predator");
 
@@ -190,6 +228,7 @@ public class SimulationController : MonoBehaviour {
 
             if (t is FishPropertiesComponent) entityManager.SetComponentData(entity, (FishPropertiesComponent)t);
             else if (t is PredatorPropertiesComponent) entityManager.SetComponentData(entity, (PredatorPropertiesComponent)t);
+            else if (t is PredatorSTPropertiesComponent) entityManager.SetComponentData(entity, (PredatorSTPropertiesComponent)t);
 
             entityManager.SetComponentData(entity, new Translation {Value = new float3(StaticFishData.getNoIncFloat3())});
 
@@ -259,6 +298,34 @@ public class SimulationController : MonoBehaviour {
             lockOnDistance = StaticPredatorData.getNextEvolve(),
             lockOnRadius = StaticPredatorData.getNextEvolve(),
             numOfFishCaught = StaticPredatorData.getNumOfFishCaught(),
+        };
+    }
+
+    private IComponentData constructPredatorSTComponent() {
+        StaticPredatorSTData.reset();
+        return new PredatorSTPropertiesComponent {
+            vM = StaticPredatorSTData.getNextFloat(),
+            vC = StaticPredatorSTData.getNextFloat(),
+            mA = StaticPredatorSTData.getNextFloat(),
+            catchDistance = StaticPredatorSTData.getNextFloat(),
+            confusionProbability = StaticPredatorSTData.getNextFloat(),
+            len = StaticPredatorSTData.getBl(),
+
+            direction = StaticPredatorSTData.getNextFloat3(),
+            position = StaticPredatorSTData.getRandom(),
+            speed = StaticPredatorSTData.getRandom(),
+
+            restTime = StaticPredatorSTData.getNextInt(),
+            remainingRest = StaticPredatorSTData.getNextInt(),
+
+            tactic = StaticPredatorSTData.getSimpleTactic(),
+            state = StaticPredatorSTData.getState(),
+
+            firstRandomTacticBarrier = StaticPredatorSTData.getNextEvolve(),
+            secondRandomTacticBarrier = StaticPredatorSTData.getNextEvolve(),
+            //firstSectionTactic = StaticPredatorSTData.getNextInt(),
+            //secondSectionTactic = StaticPredatorSTData.getNextInt(),
+            //thirdSectionTactic = StaticPredatorSTData.getNextInt(),
         };
     }
 

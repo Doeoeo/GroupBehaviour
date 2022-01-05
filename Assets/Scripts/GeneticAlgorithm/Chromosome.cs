@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Chromosome
 {
+    public float max = 1.0f;
 
     float[] genes;
     public float[] Genes {get => genes; set => genes = value;}
@@ -42,13 +43,26 @@ public class Chromosome
 
     public void GenerateNewGenes(){
 
-        for(int i=0; i<this.genesLength; i++) {
-            this.genes[i] = this.GenerateSingleGeneFloat();
+        // TODO(miha): If it is simple tactic generate two random values between 0 and 1.
+        //for(int i=0; i<this.genesLength; i++) {
+        //    this.genes[i] = this.GenerateSingleGeneFloat(max);
+        //}
+        
+        float rng1 = GenerateSingleGeneFloat(1.0f);
+        float rng2 = GenerateSingleGeneFloat(1.0f);
+
+        if(rng1 < rng2) {
+            this.genes[0] = rng1;
+            this.genes[1] = rng2;
+        } else {
+            this.genes[0] = rng2;
+            this.genes[1] = rng1;
         }
+
     }
 
-    public float GenerateSingleGeneFloat() {
-        return UnityEngine.Random.Range(0.0f, 100.0f);
+    public float GenerateSingleGeneFloat(float max) {
+        return UnityEngine.Random.Range(0.0f, max);
     }
 
     public void Mutate() {
@@ -58,7 +72,7 @@ public class Chromosome
             float mutationProbability = Random.Range(0.0f, 1.0f);
 
             if(mutationRate>mutationProbability){
-                this.genes[i] = this.GenerateSingleGeneFloat();
+                this.genes[i] = this.GenerateSingleGeneFloat(max);
             }
 
         }

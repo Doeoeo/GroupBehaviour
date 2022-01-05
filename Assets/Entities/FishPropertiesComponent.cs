@@ -39,4 +39,6 @@ public struct FishPropertiesComponent : IComponentData {
 
     public float peripherality;                                   //magnitude of the peripherality vector
     public float3 peripheralityVector;                            //Peripherality vector
+
+    // public int confusionCount; // counts how many neighbouring fishes are in confusion zone
 }

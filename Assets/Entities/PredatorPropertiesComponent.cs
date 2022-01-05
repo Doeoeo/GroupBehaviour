@@ -34,7 +34,6 @@ public struct PredatorSTPropertiesComponent : IComponentData
 {
     public float vM;                                              //Max speed
     public float vC;                                              //Crusing speed
-
     public float mA;                                              //Max acceleration
     public float len;                                             //Body length 
     public float catchDistance;
@@ -45,19 +44,29 @@ public struct PredatorSTPropertiesComponent : IComponentData
 
     public int restTime;                                          //Frames dedicated to eating fish
     public int remainingRest;                                     //Remaining frames for eating after catching a fish
-    public int fishToEat;                                         //Fish soft deletion
-    public int mostIsolated;
+    
+    // TODO(miha): Do we need these vars?
+    // public int fishToEat;                                         //Fish soft deletion
+    // public int mostIsolated;
+    // public int centerFish;                                        //Central fish for hunting
+    // public int targetFish;
+    // public int peripheralFish;
+
 
     public SimpleTactic tactic;
     public State state;
 
-    public int targetFish;
-    public int centerFish;                                        //Central fish for hunting
-    public int peripheralFish;
-
     public float confusionProbability;
 
     public int numOfFishCaught;
+
+    // NOTE(miha): TODO(miha): Add some comentarry.
+    public float firstRandomTacticBarrier;
+    public float secondRandomTacticBarrier;
+
+    public int firstSectionTactic;
+    public int secondSectionTactic;
+    public int thirdSectionTactic;
 
     // TODO(miha): There is 25% for confusion... Don't need to keep statistic
     // how many attacks predator performed.. unless it is decided that

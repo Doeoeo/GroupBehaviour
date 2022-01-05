@@ -18,6 +18,8 @@ public static class StaticFishData {
     private static int floatIndex = 0, float3Index = 0, fishIndex = -1;
     private static float bl = 0.1f;
 
+    // TODO(miha): Set UnityEngine.Random seed. reset this seed (set it to the same it was) for every simulation. When going into next generation set new seed & repeat.
+
     private static EntityArchetype entityArchetype = World.DefaultGameObjectInjectionWorld.EntityManager.CreateArchetype(
             typeof(FishPropertiesComponent),
             typeof(Translation),
