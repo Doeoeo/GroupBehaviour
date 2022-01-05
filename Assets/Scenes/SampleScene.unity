@@ -315,7 +315,7 @@ MonoBehaviour:
   fishMaterial: {fileID: 2100000, guid: 93c4b175ecd668147a2f809f2b1da698, type: 2}
   predatorMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
   predatorMaterial: {fileID: 2100000, guid: d74222a0958099d4484246b2db0a25bf, type: 2}
-  agentNumberParam: 100
+  agentNumberParam: 20
   isActive: 1
 --- !u!1 &705507993
 GameObject:

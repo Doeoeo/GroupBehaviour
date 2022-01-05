@@ -65,7 +65,7 @@ public class SimulationController : MonoBehaviour {
 
         int populationSize = 10;
         float mutationRate = 0.01f;
-        int genesLength = 1;
+        int genesLength = 2;
         int maxGenerations = 10;
         float thresholdScore = 4.0f;
 
