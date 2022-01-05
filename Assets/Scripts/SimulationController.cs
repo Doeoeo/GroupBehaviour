@@ -132,7 +132,7 @@ public class SimulationController : MonoBehaviour {
         // Debug.Log("current chromosome score: " + fishCaughtScore);
         //Debug.Log("random not so random?: " + UnityEngine.Random.Range(0f, 10000f));
 
-        Debug.Log(currentChromosome.SimulationRepetitionsDone);
+        Debug.Log(currentChromosome.SimulationRepetitionsDone + " score: " + fishCaughtScore);
         // float fitnessScore = StaticPredatorData.getNumOfFishCaught();
         currentChromosome.FitnessScore += fishCaughtScore;
 
