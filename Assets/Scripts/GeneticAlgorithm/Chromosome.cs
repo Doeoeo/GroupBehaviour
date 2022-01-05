@@ -36,7 +36,7 @@ public class Chromosome
         this.genes = new float[genesLength];
         this.simpleTactic = simpleTactic;
 
-        this.simulationRepetitionsDone = 0;
+        this.simulationRepetitionsDone = 1;
         this.fitnessScore = 0;
         this.simulationsFinished = false;
 

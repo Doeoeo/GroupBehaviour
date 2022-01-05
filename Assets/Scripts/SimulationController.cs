@@ -52,6 +52,15 @@ public class SimulationController : MonoBehaviour {
     NativeArray<Entity> fishEntityArray;
     NativeArray<Entity> predatorEntityArray;
 
+
+    [SerializeField] int populationSize;
+    [SerializeField] float mutationRate;
+    [SerializeField] int genesLength;
+    [SerializeField] int maxGenerations;
+    [SerializeField] float thresholdScore;
+    [SerializeField] int chromosomeSimulationRepetitions;
+
+
     void Start() {
         Time.fixedDeltaTime = timestep;
         currentSimulationFrame = 0;
@@ -77,14 +86,6 @@ public class SimulationController : MonoBehaviour {
         // }
         //
 
-
-
-        int populationSize = 10;
-        float mutationRate = 0.01f;
-        int genesLength = 2;
-        int maxGenerations = 5;
-        float thresholdScore = 40.0f;
-        int chromosomeSimulationRepetitions = 10;
         bool isSimpleTactic = (predatorType == PredatorType.SimpleTactic);
 
         geneticAlgorithm = new GeneticAlgorithm(populationSize, mutationRate, genesLength, maxGenerations, thresholdScore, isSimpleTactic, chromosomeSimulationRepetitions);
@@ -128,46 +129,56 @@ public class SimulationController : MonoBehaviour {
         // for(int i = 0; i<currentChromosome.Genes.Length; i++) {
         //     fishCaughtScore += currentChromosome.Genes[i];
         // }
-        Debug.Log("current chromosome score: " + fishCaughtScore);
+        // Debug.Log("current chromosome score: " + fishCaughtScore);
         //Debug.Log("random not so random?: " + UnityEngine.Random.Range(0f, 10000f));
-     
 
+        Debug.Log(currentChromosome.SimulationRepetitionsDone);
         // float fitnessScore = StaticPredatorData.getNumOfFishCaught();
-        currentChromosome.FitnessScore = fishCaughtScore;
+        currentChromosome.FitnessScore += fishCaughtScore;
 
         if(!geneticAlgorithm.IsFinished) {
 
             if(!geneticAlgorithm.IsGenerationFinished) {
 
-                currentChromosome = geneticAlgorithm.GetNextChromosome();
+                if(!currentChromosome.AreSimulationsFinished) {
+                    currentChromosome.nextSimulation();
+                }
+                else {
+                    currentChromosome.FitnessScore /= chromosomeSimulationRepetitions;
+                    Debug.Log("current chromosome score: " + currentChromosome.FitnessScore);
+                    currentChromosome = geneticAlgorithm.GetNextChromosome();
+                }
 
             }
             else {
-                
-                bestChromosome = geneticAlgorithm.GetBest();
 
-                // float bestScore = 0.0f;
-                // for(int i = 0; i<bestChromosome.Genes.Length; i++) {
-                //     bestScore += bestChromosome.Genes[i];
-                // }            
-                // Debug.Log("!! best chromosome --->" + bestScore );
-
-                Debug.Log("!! best chromosome --->" +  bestChromosome.ToString() + ", score: " + bestChromosome.FitnessScore);
-
-
-                if(!geneticAlgorithm.IsFinished) {
-
-                    // TODO(miha): Here we generate new position :)
-                    randomSeed = (int) UnityEngine.Random.Range(0f, 10000f);
-
-                    geneticAlgorithm.CreateNextGeneration();
-                    currentChromosome = geneticAlgorithm.GetNextChromosome();
+                if(!currentChromosome.AreSimulationsFinished) {
+                    currentChromosome.nextSimulation();
                 }
                 else {
+                    currentChromosome.FitnessScore /= chromosomeSimulationRepetitions;
+                    Debug.Log("current chromosome score: " + currentChromosome.FitnessScore);
 
 
-                    Debug.Log("!! Final best chromosome --->" + bestChromosome.ToString() + ", score: " + bestChromosome.FitnessScore);
-                    return;                 
+                    bestChromosome = geneticAlgorithm.GetBest();
+                    Debug.Log("!! best chromosome --->" +  bestChromosome.ToString() + ", score: " + bestChromosome.FitnessScore);
+
+
+                    if(!geneticAlgorithm.IsFinished) {
+
+                        // TODO(miha): Here we generate new position :)
+                        randomSeed = (int) UnityEngine.Random.Range(0f, 10000f);
+
+                        geneticAlgorithm.CreateNextGeneration();
+                        currentChromosome = geneticAlgorithm.GetNextChromosome();
+                    }
+                    else {
+
+
+                        Debug.Log("!! Final best chromosome --->" + bestChromosome.ToString() + ", score: " + bestChromosome.FitnessScore);
+                        return;                 
+                    }
+
                 }
 
             }
