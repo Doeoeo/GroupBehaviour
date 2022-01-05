@@ -146,11 +146,29 @@ public class PredatorVelocityBase : SystemBase {
 
                     //if the fish is less than 1 bl away from the fish, we say the prey ate the fish
                     if (math.distance(predatorPosition, positions[targetFishArrayIndex].position) < 0.1f) {
-                        //Debug.Log("I caught the fish!");
-                        predator.numOfFishCaught++;
-                        //setup the fish with the id to be eaten
-                        predator.fishToEat = predator.mostIsolated;
-                        //maybe we need a critical section
+
+                        //check how many fish in confusion zone of the predator
+                        int fishInConfusionZone = 0;
+                        for (int i = 1; i < positions.Length; i++) {
+                            //we found a fish in radius
+                            if(math.distance(predatorPosition, positions[i].position) < 0.75f) {
+                                fishInConfusionZone += 1;
+                            }
+                        }
+
+                        float pSuccess = 1/fishInConfusionZone; 
+
+                        if(UnityEngine.Random.Range(0f,1f) < pSuccess) {
+                            //Debug.Log("I caught the fish!");
+                            predator.numOfFishCaught++;
+                            //setup the fish with the id to be eaten
+                            predator.fishToEat = predator.mostIsolated;
+                            //maybe we need a critical section
+                            //Debug.Log("git shrekt fish LMAO :CryingLaughingEmoji:");
+                        } else {
+                            //Debug.Log("Confusement?!?!");
+                        }
+                        
                         predator.status = 2;
                     }
                 }
