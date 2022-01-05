@@ -51,3 +51,4 @@ Logs/
 *.sln
 *.csproj
 UserSettings/
+/tags

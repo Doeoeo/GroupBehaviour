@@ -82,13 +82,8 @@ public class SimulationController : MonoBehaviour {
         int populationSize = 100;
         float mutationRate = 0.01f;
         int genesLength = 2;
-<<<<<<< HEAD
         int maxGenerations = 5;
         float thresholdScore = 40.0f;
-=======
-        int maxGenerations = 10;
-        float thresholdScore = 4.0f;
->>>>>>> main
 
         geneticAlgorithm = new GeneticAlgorithm(populationSize, mutationRate, genesLength, maxGenerations, thresholdScore);
         currentChromosome = geneticAlgorithm.GetNextChromosome();
