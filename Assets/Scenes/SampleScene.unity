@@ -338,12 +338,12 @@ MonoBehaviour:
   agentNumberParam: 20
   isActive: 1
   predatorType: 1
-  populationSize: 4
-  mutationRate: 0.01
+  populationSize: 50
+  mutationRate: 0.02
   genesLength: 2
-  maxGenerations: 10
+  maxGenerations: 50
   thresholdScore: 40
-  chromosomeSimulationRepetitions: 2
+  chromosomeSimulationRepetitions: 3
   NUJNO_isLockOn: 0
 --- !u!1 &705507993
 GameObject:
