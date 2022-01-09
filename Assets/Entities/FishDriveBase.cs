@@ -37,8 +37,8 @@ public class FishDriveBase : SystemBase {
         m_Group = GetEntityQuery(ComponentType.ReadOnly<FishPropertiesComponent>());
         NativeArray <FishPropertiesComponent> positions = m_Group.ToComponentDataArray<FishPropertiesComponent>(Allocator.TempJob);
 
-        m_Group_p = GetEntityQuery(ComponentType.ReadOnly<PredatorSTPropertiesComponent>());
-        NativeArray <PredatorSTPropertiesComponent> predatorPositions = m_Group_p.ToComponentDataArray<PredatorSTPropertiesComponent>(Allocator.TempJob);
+        m_Group_p = GetEntityQuery(ComponentType.ReadOnly<PredatorPropertiesComponent>());
+        NativeArray <PredatorPropertiesComponent> predatorPositions = m_Group_p.ToComponentDataArray<PredatorPropertiesComponent>(Allocator.TempJob);
 
         // Main forEach passing positions as ReadOnly didn't work.
         // Had to remove safety restrictions -> BE CAREFUL

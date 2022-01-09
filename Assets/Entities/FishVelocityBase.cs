@@ -58,7 +58,7 @@ public class FishVelocityBase : SystemBase {
                     v = controller.borderRadius;
                 }
                 else {
-                    v = 4; // TODO(miha): Is this okay?
+                    v = 10; // TODO(miha): Is this okay?
                 }
                 
 

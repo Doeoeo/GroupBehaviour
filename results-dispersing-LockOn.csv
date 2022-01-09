@@ -1,0 +1,12 @@
+Evolution: 
+	Predator type: Dispersing
+	Lock on: Yes
+	Num of generations: 50
+	Mutation rate: 0.02
+	Simulations per chromosome: 3
+
+	Frames in each simulation: 700
+	Number of agents: 20
+
+
+generationNum,fishCaught,gene1,gene2,isFinal,isFinalOverall

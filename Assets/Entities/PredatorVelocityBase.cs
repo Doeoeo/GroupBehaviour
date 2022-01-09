@@ -155,8 +155,8 @@ public class PredatorVelocityBase : SystemBase {
                                 fishInConfusionZone += 1;
                             }
                         }
-
-                        float pSuccess = 1/fishInConfusionZone; 
+                        float pSuccess = 1;
+                        if (fishInConfusionZone != 0) pSuccess = 1/fishInConfusionZone; 
 
                         if(UnityEngine.Random.Range(0f,1f) < pSuccess) {
                             //Debug.Log("I caught the fish!");
