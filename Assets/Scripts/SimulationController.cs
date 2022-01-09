@@ -163,7 +163,7 @@ public class SimulationController : MonoBehaviour {
         // Debug.Log("current chromosome score: " + fishCaughtScore);
         //Debug.Log("random not so random?: " + UnityEngine.Random.Range(0f, 10000f));
 
-        Debug.Log(currentChromosome.SimulationRepetitionsDone + " score: " + fishCaughtScore);
+        Debug.Log("gen-" + geneticAlgorithm.CurrentGenerationNumber + ",chr-" + geneticAlgorithm.CurrentChromosomeIndex + ",rep-" + currentChromosome.SimulationRepetitionsDone + ",score: " + fishCaughtScore);
         // float fitnessScore = StaticPredatorData.getNumOfFishCaught();
         currentChromosome.FitnessScore += fishCaughtScore;
 
@@ -193,7 +193,7 @@ public class SimulationController : MonoBehaviour {
 
 
                     bestChromosome = geneticAlgorithm.GetBest();
-                    Debug.Log("!! best chromosome --->" +  bestChromosome.ToString() + ", score: " + bestChromosome.FitnessScore);
+                    Debug.Log("!! best chromosome of gen " + geneticAlgorithm.CurrentGenerationNumber + " --->" +  bestChromosome.ToString() + ", score: " + bestChromosome.FitnessScore);
 
                     using (StreamWriter w = File.AppendText(outputFileName))
                     {
@@ -261,6 +261,7 @@ public class SimulationController : MonoBehaviour {
         }
         else {
             
+            Debug.Log("KONEC !!!");
             return;
 
         }

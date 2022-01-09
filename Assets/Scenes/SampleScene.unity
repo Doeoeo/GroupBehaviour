@@ -341,7 +341,7 @@ MonoBehaviour:
   populationSize: 4
   mutationRate: 0.01
   genesLength: 2
-  maxGenerations: 3
+  maxGenerations: 10
   thresholdScore: 40
   chromosomeSimulationRepetitions: 2
   NUJNO_isLockOn: 0

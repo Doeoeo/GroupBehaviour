@@ -31,6 +31,7 @@ public class GeneticAlgorithm {
 
     Chromosome[] populationChromosomes;
     int currentChromosomeIndex;
+     public int CurrentChromosomeIndex {get => currentChromosomeIndex; }
 
     public GeneticAlgorithm(int populationSize, float mutationRate, int genesLength,  int maxGenerations, float thresholdScore, bool simpleTactic, int chromosomeSimulationRepetitions) {
 
@@ -46,8 +47,6 @@ public class GeneticAlgorithm {
         generationFinished = false;
 
 
-        Debug.Log("Creating first generation");
-
         this.currentChromosomeIndex = 0;
         this.generationsNumber = 0;
         this.populationChromosomes = new Chromosome[populationSize];
@@ -58,12 +57,13 @@ public class GeneticAlgorithm {
         }
 
         generationsNumber++;
+        Debug.Log("Creating generation number " + generationsNumber);
 
     }
 
     public void CreateNextGeneration(){
 
-        Debug.Log("Creating generation number " + generationsNumber);
+
         generationFinished = false;
         currentChromosomeIndex = 0;
 
@@ -85,6 +85,7 @@ public class GeneticAlgorithm {
 
         this.generationsNumber++;
         this.populationChromosomes = newPopulationChromosomes;
+        Debug.Log("Creating generation number " + generationsNumber);
     }
 
 
