@@ -341,9 +341,10 @@ MonoBehaviour:
   populationSize: 4
   mutationRate: 0.01
   genesLength: 2
-  maxGenerations: 2
+  maxGenerations: 3
   thresholdScore: 40
   chromosomeSimulationRepetitions: 2
+  NUJNO_isLockOn: 0
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0

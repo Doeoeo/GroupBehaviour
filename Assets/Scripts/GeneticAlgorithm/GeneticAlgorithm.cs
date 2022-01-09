@@ -124,7 +124,7 @@ public class GeneticAlgorithm {
 
         }
 
-        if (this.bestFitnessScore > this.thresholdScore || this.generationsNumber > this.maxGenerations) {
+        if (this.bestFitnessScore > this.thresholdScore || this.generationsNumber >= this.maxGenerations) {
             this.finished = true;
         }
         

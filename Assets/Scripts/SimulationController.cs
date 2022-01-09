@@ -114,7 +114,7 @@ public class SimulationController : MonoBehaviour {
 
             w.WriteLine("");
             w.WriteLine("");
-            w.WriteLine("generationNum, fishCaught, gene1, gene2, isFinal, isFinalOverall");
+            w.WriteLine("generationNum,fishCaught,gene1,gene2,isFinal,isFinalOverall");
 
         }
 
@@ -197,7 +197,7 @@ public class SimulationController : MonoBehaviour {
 
                     using (StreamWriter w = File.AppendText(outputFileName))
                     {
-                        w.WriteLine(geneticAlgorithm.CurrentGenerationNumber + ", " + bestChromosome.FitnessScore + ", " + bestChromosome.Genes[0] + ", " + bestChromosome.Genes[1] + ", false, false");
+                        w.WriteLine(geneticAlgorithm.CurrentGenerationNumber + "," + bestChromosome.FitnessScore + "," + bestChromosome.Genes[0] + "," + bestChromosome.Genes[1] + ",false,false");
                     }
 
                     if(bestChromosome.FitnessScore > bestChromosomeOverall.FitnessScore) {
@@ -218,11 +218,11 @@ public class SimulationController : MonoBehaviour {
                         Debug.Log("!! Final best chromosome --->" + bestChromosome.ToString() + ", score: " + bestChromosome.FitnessScore);
                         using (StreamWriter w = File.AppendText(outputFileName))
                         {
-                            w.WriteLine(geneticAlgorithm.CurrentGenerationNumber + ", " + bestChromosome.FitnessScore + ", " + bestChromosome.Genes[0] + ", " + bestChromosome.Genes[1] + ", true, false");
+                            w.WriteLine(geneticAlgorithm.CurrentGenerationNumber + "," + bestChromosome.FitnessScore + "," + bestChromosome.Genes[0] + "," + bestChromosome.Genes[1] + ",true,false");
                         }    
                         using (StreamWriter w = File.AppendText(outputFileName))
                         {
-                            w.WriteLine(geneticAlgorithm.CurrentGenerationNumber + ", " + bestChromosomeOverall.FitnessScore + ", " + bestChromosomeOverall.Genes[0] + ", " + bestChromosomeOverall.Genes[1] + ", false, true");
+                            w.WriteLine(geneticAlgorithm.CurrentGenerationNumber + "," + bestChromosomeOverall.FitnessScore + "," + bestChromosomeOverall.Genes[0] + "," + bestChromosomeOverall.Genes[1] + ",false,true");
                         } 
                         Application.Quit();                      
                         return;                 
