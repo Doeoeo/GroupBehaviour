@@ -18,6 +18,8 @@ public class GeneticAlgorithm {
     public bool IsGenerationFinished { get => generationFinished; }
 
     int generationsNumber;
+    public int CurrentGenerationNumber { get => generationsNumber; }
+
     float fitnessSum;
     int chromosomeSimulationRepetitions;
 

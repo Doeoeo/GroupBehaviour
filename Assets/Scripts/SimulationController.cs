@@ -10,6 +10,7 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Rendering;
 using System;
 using System.Threading;
+using System.IO;
 //using System.Runtime.Remo
 
 /* A Monobehaviour that spawns iterations of entities for each evolution cycle
@@ -59,7 +60,10 @@ public class SimulationController : MonoBehaviour {
     [SerializeField] int maxGenerations;
     [SerializeField] float thresholdScore;
     [SerializeField] int chromosomeSimulationRepetitions;
+    [SerializeField] bool NUJNO_isLockOn;
 
+    public static String outputFileName;
+    public static Chromosome bestChromosomeOverall;
 
     void Start() {
         Time.fixedDeltaTime = timestep;
@@ -92,6 +96,31 @@ public class SimulationController : MonoBehaviour {
 
         currentChromosome = geneticAlgorithm.GetNextChromosome();
 
+
+        outputFileName = "results-" + (isSimpleTactic  ? "simple" : "dispersing") + "-" + (NUJNO_isLockOn  ? "LockOn" : "NoLockOn") + ".csv";
+        using(StreamWriter w = new StreamWriter(outputFileName))
+        {
+            w.WriteLine("Evolution: ");
+            
+            w.WriteLine("\tPredator type: " + (isSimpleTactic  ? "Mixture of simple tactics" : "Dispersing"));
+            w.WriteLine("\tLock on: " + (NUJNO_isLockOn  ? "Yes" : "No"));
+            w.WriteLine("\tNum of generations: " + maxGenerations);
+            w.WriteLine("\tMutation rate: " + mutationRate);
+            w.WriteLine("\tSimulations per chromosome: " + chromosomeSimulationRepetitions);
+
+            w.WriteLine("");
+            w.WriteLine("\tFrames in each simulation: " + simulationFrames);
+            w.WriteLine("\tNumber of agents: " + agentNumberParam);
+
+            w.WriteLine("");
+            w.WriteLine("");
+            w.WriteLine("generationNum, fishCaught, gene1, gene2, isFinal, isFinalOverall");
+
+        }
+
+        bestChromosomeOverall = new Chromosome(mutationRate, genesLength, isSimpleTactic, chromosomeSimulationRepetitions);
+        bestChromosomeOverall.FitnessScore = -1.0f;
+
     }
 
     void FixedUpdate() {
@@ -102,8 +131,10 @@ public class SimulationController : MonoBehaviour {
         currentSimulationFrame++;
     }
 
+
     // Finalize a simulation
     private void wrapUp() {
+
 
         // EntityQuery m_Group_p = GetEntityQuery(ComponentType.ReadOnly<PredatorPropertiesComponent>());
         // NativeArray <PredatorPropertiesComponent> predators = m_Group_p.ToComponentDataArray<PredatorPropertiesComponent>(Allocator.TempJob);
@@ -146,6 +177,7 @@ public class SimulationController : MonoBehaviour {
                 else {
                     currentChromosome.FitnessScore /= chromosomeSimulationRepetitions;
                     Debug.Log("current chromosome score: " + currentChromosome.FitnessScore);
+
                     currentChromosome = geneticAlgorithm.GetNextChromosome();
                 }
 
@@ -163,6 +195,14 @@ public class SimulationController : MonoBehaviour {
                     bestChromosome = geneticAlgorithm.GetBest();
                     Debug.Log("!! best chromosome --->" +  bestChromosome.ToString() + ", score: " + bestChromosome.FitnessScore);
 
+                    using (StreamWriter w = File.AppendText(outputFileName))
+                    {
+                        w.WriteLine(geneticAlgorithm.CurrentGenerationNumber + ", " + bestChromosome.FitnessScore + ", " + bestChromosome.Genes[0] + ", " + bestChromosome.Genes[1] + ", false, false");
+                    }
+
+                    if(bestChromosome.FitnessScore > bestChromosomeOverall.FitnessScore) {
+                        bestChromosomeOverall = bestChromosome;
+                    }
 
                     if(!geneticAlgorithm.IsFinished) {
 
@@ -176,6 +216,15 @@ public class SimulationController : MonoBehaviour {
 
 
                         Debug.Log("!! Final best chromosome --->" + bestChromosome.ToString() + ", score: " + bestChromosome.FitnessScore);
+                        using (StreamWriter w = File.AppendText(outputFileName))
+                        {
+                            w.WriteLine(geneticAlgorithm.CurrentGenerationNumber + ", " + bestChromosome.FitnessScore + ", " + bestChromosome.Genes[0] + ", " + bestChromosome.Genes[1] + ", true, false");
+                        }    
+                        using (StreamWriter w = File.AppendText(outputFileName))
+                        {
+                            w.WriteLine(geneticAlgorithm.CurrentGenerationNumber + ", " + bestChromosomeOverall.FitnessScore + ", " + bestChromosomeOverall.Genes[0] + ", " + bestChromosomeOverall.Genes[1] + ", false, true");
+                        } 
+                        Application.Quit();                      
                         return;                 
                     }
 
@@ -213,6 +262,7 @@ public class SimulationController : MonoBehaviour {
         else {
             
             return;
+
         }
 
     }
